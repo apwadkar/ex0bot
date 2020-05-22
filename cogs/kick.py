@@ -19,12 +19,13 @@ class Kick(commands.Cog):
   @commands.Cog.listener()
   async def on_member_remove(self, member: discord.Member):
     # TODO: Consider just making this a command in case of user leaving (command)
+    # TODO: Make this server specific based on server id
     # Save all roles and nickname into the Redis backend
     # Format: roles:{user_id} as list containing all role ids, user:{user_id} as nickname
     memberId = member.id
     roleIds = [role.id for role in member.roles]
-    self.cache.rpush(f'roles:{memberId}', *roleIds)
-    self.cache.set(f'user:{memberId}', member.nick)
+    self.cache.rpush(f'roles:{member.guild.id}:{memberId}', *roleIds)
+    self.cache.set(f'user:{member.guild.id}:{memberId}', member.nick or '')
 
   @commands.command(name='kick')
   async def kick(self, context: commands.Context, user: discord.Member, reason: str = 'Kicked by admin'):

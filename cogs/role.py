@@ -10,9 +10,9 @@ class Role(commands.Cog):
   async def role(self, context: commands.Context, name: str, channelName: str = ''):
     # TODO: Figure out how bool converters work
     await context.message.delete()
+    guild: discord.Guild = context.guild
     guild.create_role(name=name, reason=f'Requested by {context.author}')
     if channelName:
       await context.send(f'Creating role {name} with channel {channelName}')
-      guild: discord.Guild = context.guild
     else:
       await context.send(f'Creating role {name} with no channel')
