@@ -1,5 +1,6 @@
 import redis
 import discord
+from discord.ext import commands
 
 # Settings
 import settings
@@ -11,16 +12,44 @@ r = redis.Redis(
     db=settings.REDIS_DB
 )
 
-class DiscordClient(discord.Client):
-    async def on_ready(self):
-        # Confirm that we logged into the bot user successfully
-        print(f'Logged on as {self}!')
-    
-    async def on_message(self, message):
-        # Ignore any messages from self
-        if message.author != self.user:
-            print('Message from {0.author}: {0.content}'.format(message))
+bot = commands.Bot(command_prefix='$')
 
-# Connect to Discord bot user
-disc = DiscordClient()
-disc.run(settings.DISCORD_TOKEN)
+@bot.event
+async def on_ready():
+    # Confirm that we logged into the bot user successfully
+    print(f'Logged on as {bot.user}!')
+
+@bot.command(name="role")
+async def role(context: commands.Context, arg):
+    await context.send(arg)
+
+@bot.command(name="announce")
+async def announce(context: commands.Context, arg):
+    await context.send(arg)
+
+@bot.command(name="kick")
+async def kick(context: commands.Context, arg):
+    # print(arg)
+    await context.send(arg)
+
+@bot.event
+async def on_message(message: discord.Message):
+    # Ignore any messages from self
+    if message.author != bot.user:
+        # print('Message from {0.author}: {0.content}'.format(message))
+        pass
+
+@bot.event
+async def on_member_add(member: discord.Member):
+    # Restore all roles from Redis backend if an entry exists
+    pass
+
+@bot.event
+async def on_member_remove(member: discord.Member):
+    # TODO: Consider just making this a command in case of user leaving
+    # Save all roles into the Redis backend
+    # Format: roles:{user_id} as list containing all role ids
+    # await add_roles(*[role_ids])
+    pass
+
+bot.run(settings.DISCORD_TOKEN)
