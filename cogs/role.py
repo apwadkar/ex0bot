@@ -24,59 +24,90 @@ class Role(commands.Cog):
         role = user.guild.get_role(int(roleid))
         await user.remove_roles(role)
 
-  @commands.group(name='role')
+  @commands.command(name='role')
   async def role(self, context: commands.Context, subcommand: str, *args):
     await context.message.delete()
     if subcommand == 'create':
-      if len(args) == 1:
-        await self.create(context, args[0])
-      else:
-        await self.create(context, args[0], args[1])
+      await context.invoke(self.create, *args)
     elif subcommand == 'remove':
-      await self.remove(context, args[0])
+      await context.invoke(self.remove, *args)
     else:
       await context.send('Invalid role subcommand!')
   
+  @commands.command(name='rolec')
   async def create(self, context: commands.Context, name: str, channelName: str = ''):
+    await context.message.delete()
     guild: discord.Guild = context.guild
     try:
-      role: discord.Role = await guild.create_role(name=name, reason=f'Requested by {context.author}')
+      # Check if the role already exists on this server
+      msgrole: discord.Role = None
+      for role in guild.roles:
+        if role.name == name:
+          msgrole = role
+          break
+      if not msgrole:
+        msgrole = await guild.create_role(name=name, reason=f'Requested by {context.author}')
+      
+      # If a channel creation is requested, create/link one
+      embed = discord.Embed(title=f'Opt in to the {name} role')
       if channelName:
-        embed = discord.Embed(
-          title=f'Opt in to the {name} role',
-          description=f'If you\'d like access to the {name} role and {channelName} channel, react 👍.'
-        )
+        embed.description = f'If you\'d like access to the {name} role and {channelName} channel, react 👍.'
         msg: discord.Message = await context.channel.send(embed=embed)
-        self.cache.hset(name=f'role:{msg.id}', key='roleid', value=role.id)
+        self.cache.hset(name=f'role:{msg.id}', key='roleid', value=msgrole.id)
         await msg.add_reaction('👍')
-        overwrites = {
-          guild.default_role: discord.PermissionOverwrite(read_messages=False),
-          guild.me: discord.PermissionOverwrite(read_messages=True),
-          role: discord.PermissionOverwrite(read_messages=True)
-        }
-        channel = await guild.create_text_channel(name=channelName, overwrites=overwrites)
-        self.cache.hset(name=f'role:{msg.id}', key='channelid', value=channel.id)
+
+        # Check is channel already exists on this server
+        msgchannel: discord.TextChannel = None
+        for channel in guild.channels:
+          if channel.name == channelName:
+            msgchannel = channel
+            break
+        if not msgchannel:
+          overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True),
+            role: discord.PermissionOverwrite(read_messages=True)
+          }
+          category: discord.CategoryChannel = guild.get_channel(context.channel.category_id)
+          msgchannel = await guild.create_text_channel(name=channelName, overwrites=overwrites, category=category)
+        self.cache.hset(name=f'role:{msg.id}', key='channelid', value=msgchannel.id)
       else:
-        embed = discord.Embed(
-          title=f'Opt in to the {name} role',
-          description=f'If you\'d like access to the {name} role, react 👍.',
-        )
+        embed.description=f'If you\'d like access to the {name} role, react 👍.'
         msg: discord.Message = await context.channel.send(embed=embed)
-        self.cache.hset(name=f'role:{msg.id}', key='roleid', value=role.id)
+        self.cache.hset(name=f'role:{msg.id}', key='roleid', value=msgrole.id)
         await msg.add_reaction('👍')
     except discord.Forbidden as ex:
       context.send(f'{context.author} does not have sufficient privileges!')
   
-  async def remove(self, context: commands.Context, messageid: str):
+  @commands.command(name='roled')
+  async def remove(
+    self,
+    context: commands.Context,
+    messageid: str,
+    deleterole: bool = True,
+    deletechannel: bool = True
+  ):
+    await context.message.delete()
+    # Check if the message id was actually a role message
     roleid = self.cache.hget(f'role:{messageid}', 'roleid')
     if roleid:
+      # Delete message
       channel: discord.TextChannel = context.channel
       message: discord.Message = await channel.fetch_message(int(messageid))
       await message.delete()
-      role: discord.Role = channel.guild.get_role(int(roleid))
-      await role.delete(reason=f'Delete requested by {context.author}')
+
+      # Delete role
+      if deleterole:
+        role: discord.Role = channel.guild.get_role(int(roleid))
+        await role.delete(reason=f'Delete requested by {context.author}')
+
+      # Check if the role has an associated channel
       channelid = self.cache.hget(f'role:{messageid}', 'channelid')
       if channelid:
-        channel: discord.TextChannel = channel.guild.get_channel(int(channelid))
-        await channel.delete(reason=f'Delete requested by {context.author}')
+        # Delete channel
+        if deletechannel:
+          channel: discord.TextChannel = channel.guild.get_channel(int(channelid))
+          await channel.delete(reason=f'Delete requested by {context.author}')
+      
+      # Delete cache entry
       self.cache.delete(f'role:{messageid}')
