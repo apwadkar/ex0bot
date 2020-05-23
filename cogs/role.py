@@ -85,7 +85,7 @@ class Role(commands.Cog):
     context: commands.Context,
     messageid: str,
     deleterole: bool = True,
-    deletechannel: bool = True
+    deletechannel: bool = False
   ):
     await context.message.delete()
     # Check if the message id was actually a role message
