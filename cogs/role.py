@@ -27,12 +27,12 @@ class Role(commands.Cog):
   @commands.command(name='role')
   @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
   async def role(self, context: commands.Context, subcommand: str, *args):
-    await context.message.delete()
     if subcommand == 'create':
       await context.invoke(self.create, *args)
-    elif subcommand == 'remove':
+    elif subcommand == 'remove' or subcommand == 'delete':
       await context.invoke(self.remove, *args)
     else:
+      await context.message.delete()
       await context.send('Invalid role subcommand!')
   
   @commands.command(name='rolec')
