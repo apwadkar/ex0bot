@@ -19,7 +19,6 @@ class Kick(commands.Cog):
   @commands.Cog.listener()
   async def on_member_remove(self, member: discord.Member):
     # TODO: Consider just making this a command in case of user leaving (command)
-    # TODO: Make this server specific based on server id
     # Save all roles and nickname into the Redis backend
     # Format: roles:{user_id} as list containing all role ids, user:{user_id} as nickname
     memberId = member.id
