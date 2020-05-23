@@ -3,9 +3,32 @@ import discord
 from discord.ext import commands
 
 class Role(commands.Cog):
-  def __init__(self, cache: redis.Redis):
+  def __init__(self, bot: discord.Client, cache: redis.Redis):
     self.cache = cache
+    self.bot = bot
   
+  @commands.Cog.listener()
+  async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    channel: discord.Channel = self.bot.get_channel(payload.channel_id)
+    message: discord.Message = await channel.fetch_message(payload.message_id)
+    user: discord.Member = channel.guild.get_member(payload.user_id)
+    if user != message.guild.me:
+      roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
+      if roleid:
+        role = user.guild.get_role(int(roleid))
+        await user.add_roles(role)
+  
+  @commands.Cog.listener()
+  async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+    channel: discord.Channel = self.bot.get_channel(payload.channel_id)
+    message: discord.Message = await channel.fetch_message(payload.message_id)
+    user: discord.Member = channel.guild.get_member(payload.user_id)
+    if user != message.guild.me:
+      roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
+      if roleid:
+        role = user.guild.get_role(int(roleid))
+        await user.remove_roles(role)
+
   @commands.Cog.listener()
   async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
     if user != reaction.message.guild.me:
