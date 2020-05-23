@@ -4,7 +4,7 @@ import os
 load_dotenv()
 
 # Redis connection info
-REDIS_URI = os.getenv('REDIS_URI') or ''
+REDIS_URL = os.getenv('REDIS_URL') or ''
 
 # Discord info
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN') or ''

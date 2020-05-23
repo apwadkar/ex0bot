@@ -9,7 +9,7 @@ from cogs.announce import Announce
 import settings
 
 # Connect to Redis backend cache
-cache = redis.Redis.from_url(url=settings.REDIS_URI)
+cache = redis.Redis.from_url(url=settings.REDIS_URL)
 
 bot = commands.Bot(command_prefix='$')
 
