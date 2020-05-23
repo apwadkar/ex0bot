@@ -3,8 +3,10 @@ import discord
 from discord.ext import commands
 
 class Counter(commands.Cog):
-  def __init__(self, cache: redis.Redis):
+  def __init__(self, cache: redis.Redis, numpenalty: float = 0.5, teampenalty: float = 0.1):
     self.cache = cache
+    self.numpenalty = numpenalty
+    self.teampenalty = teampenalty
 
   async def countcheck(self, team: str, base: int, message: discord.Message, userteam: str):
     member = message.author
@@ -55,20 +57,41 @@ class Counter(commands.Cog):
             message.channel.send(f'{member} doesn\'t have a valid team! {member.mention} Choose a role from the channel!')
 
   @commands.command(name='countlink')
+  @commands.has_guild_permissions(administrator=True)
   async def countlink(self, context: commands.Context, channel: discord.TextChannel):
     await context.message.delete()
     self.cache.hset(f'counting:{context.guild.id}', key='channelid', value=channel.id)
     await context.send(f'Linked {channel} for counting')
   
-  @commands.command(name='countset')
-  async def countset(self, context: commands.Context, deci: int = 0, hexa: int = 0, bina: int = 0):
+  @commands.command(name='countsetpen')
+  @commands.has_guild_permissions(administrator=True)
+  async def countsetpen(self, context: commands.Context, numpenalty: float = -1.0, teampenalty: float = -1.0):
     await context.message.delete()
-    self.cache.hset(f'counting:{context.guild.id}', key='Decimal', value=deci)
-    self.cache.hset(f'counting:{context.guild.id}', key='Hexadecimal', value=hexa)
-    self.cache.hset(f'counting:{context.guild.id}', key='Binary', value=bina)
+    if numpenalty >= 0.0:
+      if numpenalty <= 1.0:
+        self.numpenalty = numpenalty
+      else:
+        await context.send('Invalid wrong number penalty')
+    if teampenalty >= 0.0:
+      if teampenalty <= 1.0:
+        self.teampenalty = teampenalty
+      else:
+        await context.send('Invalid wrong team penalty')
+  
+  @commands.command(name='countset')
+  @commands.has_guild_permissions(administrator=True)
+  async def countset(self, context: commands.Context, deci: int = -1, hexa: int = -1, bina: int = -1):
+    await context.message.delete()
+    if deci >= 0:
+      self.cache.hset(f'counting:{context.guild.id}', key='Decimal', value=deci)
+    if hexa >= 0:
+      self.cache.hset(f'counting:{context.guild.id}', key='Hexadecimal', value=hexa)
+    if bina >= 0:
+      self.cache.hset(f'counting:{context.guild.id}', key='Binary', value=bina)
     await context.send(f'Set values for each team: Decimal: {deci}, Hexadecimal: {hex(hexa)}, Binary: {bin(bina)}')
   
   @commands.command(name='countteamadd')
+  @commands.has_guild_permissions(administrator=True)
   async def counteamadd(self, context: commands.Context, name: str, prefix: str, base: int):
     # TODO: Implement dynamic teams not hardcoded
     await context.message.delete()
