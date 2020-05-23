@@ -36,6 +36,6 @@ async def on_message(message: discord.Message):
 
 bot.add_cog(Kick(cache))
 bot.add_cog(Role(cache))
-bot.add_cog(Announce())
+bot.add_cog(Announce(cache))
 
 bot.run(settings.DISCORD_TOKEN)

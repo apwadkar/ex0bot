@@ -27,11 +27,9 @@ class Kick(commands.Cog):
     self.cache.set(f'user:{member.guild.id}:{memberId}', member.nick or '')
 
   @commands.command(name='kick')
+  @commands.has_guild_permissions(kick_members=True)
   async def kick(self, context: commands.Context, user: discord.Member, reason: str = 'Kicked by admin'):
     await context.message.delete()
     invoker: discord.Member = context.message.author
-    try:
-      await user.kick(reason=reason)
-      await context.send(f'Kicked {user} kicked for "{reason}".')
-    except discord.Forbidden:
-      await context.send(f'Unable to kick {user} because {invoker} does not have permissions.')
+    await user.kick(reason=reason)
+    await context.send(f'Kicked {user} kicked for "{reason}".')
