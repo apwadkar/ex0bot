@@ -4,6 +4,7 @@ from discord.ext import commands
 from cogs.kick import Kick
 from cogs.role import Role
 from cogs.announce import Announce
+from cogs.counter import Counter
 
 # Settings
 import settings
@@ -37,5 +38,6 @@ async def on_message(message: discord.Message):
 bot.add_cog(Kick(cache))
 bot.add_cog(Role(cache))
 bot.add_cog(Announce(cache))
+bot.add_cog(Counter(cache))
 
 bot.run(settings.DISCORD_TOKEN)

@@ -63,6 +63,7 @@ class Role(commands.Cog):
         if channel.name == channelName:
           msgchannel = channel
           break
+      # TODO: Make sure to add overrides if the channel *does* exist
       if not msgchannel:
         overwrites = {
           guild.default_role: discord.PermissionOverwrite(read_messages=False),
