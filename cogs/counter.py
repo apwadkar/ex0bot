@@ -23,7 +23,7 @@ class Counter(commands.Cog):
   async def countcheck(self, team: str, base: int, message: discord.Message, userteam: str):
     member = message.author
     if userteam != team:
-      # TODO: 1 Warning to 10% reduction of counter
+      # TODO: Notify guild owner of person and time (message.guild.owner.dm_channel?.send(message.author message.created_at))
       warningset = self.cache.hget(f'counting:{message.guild.id}', key=f'warn:{message.author.id}')
       if warningset and int(warningset) == 1:
         teampenalty = float(self.cache.hget(f'counting:{message.guild.id}', key='teampenalty'))

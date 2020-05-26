@@ -7,13 +7,17 @@ class Kick(commands.Cog):
     self.cache = cache
 
   @commands.Cog.listener()
-  async def on_member_add(self, member: discord.Member):
+  async def on_member_join(self, member: discord.Member):
     # Restore all roles from Redis backend if an entry exists
     # await add_roles(*[role_ids])
-    name = f'role:{member.id}'
-    length = self.cache.llen(name)
-    roles = self.cache.lrange(name, 0, length)
-    nick = self.cache.get(f'user:{member.id}')
+    memberId = member.id
+    rolename = f'roles:{member.guild.id}:{memberId}'
+    username = f'user:{member.guild.id}:{memberId}'
+    length = self.cache.llen(rolename)
+    roles = self.cache.lrange(rolename, 0, length)
+    roles = [member.guild.get_role(int(r)) for r in roles]
+    nick = self.cache.get(username)
+    self.cache.delete(rolename, username)
     await member.edit(nick=nick, roles=roles, reason="Restoring properties after server removal")
 
   @commands.Cog.listener()
