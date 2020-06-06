@@ -16,9 +16,9 @@ class Kick(commands.Cog):
     length = self.cache.llen(rolename)
     roles = self.cache.lrange(rolename, 0, length)
     roles = [member.guild.get_role(int(r)) for r in roles]
-    nick = self.cache.get(username)
+    nick = self.cache.get(username).decode('utf-8')
     self.cache.delete(rolename, username)
-    await member.edit(nick=nick, roles=roles, reason="Restoring properties after server removal")
+    await member.edit(nick=nick, roles=roles, reason='Restoring properties after server removal')
 
   @commands.Cog.listener()
   async def on_member_remove(self, member: discord.Member):
@@ -34,6 +34,5 @@ class Kick(commands.Cog):
   @commands.has_guild_permissions(kick_members=True)
   async def kick(self, context: commands.Context, user: discord.Member, reason: str = 'Kicked by admin'):
     await context.message.delete()
-    invoker: discord.Member = context.message.author
     await user.kick(reason=reason)
-    await context.send(f'Kicked {user} kicked for "{reason}".')
+    await context.send(f'Kicked {user} for "{reason}".')

@@ -67,7 +67,7 @@ class Counter(commands.Cog):
             elif message.content.isnumeric():
               await self.countcheck('Decimal', 10, message, team)
           else:
-            message.channel.send(f'{member} doesn\'t have a valid team! {member.mention} Choose a role from the channel!')
+            await message.channel.send(f'{member} doesn\'t have a valid team! {member.mention} Choose a role from the channel!')
 
   @commands.command(name='countlink')
   @commands.has_guild_permissions(administrator=True)
