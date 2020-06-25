@@ -14,11 +14,12 @@ class Kick(commands.Cog):
     rolename = f'roles:{member.guild.id}:{memberId}'
     username = f'user:{member.guild.id}:{memberId}'
     length = self.cache.llen(rolename)
-    roles = self.cache.lrange(rolename, 0, length)
-    roles = [member.guild.get_role(int(r)) for r in roles]
-    nick = self.cache.get(username).decode('utf-8')
-    self.cache.delete(rolename, username)
-    await member.edit(nick=nick, roles=roles, reason='Restoring properties after server removal')
+    if length:
+      roles = self.cache.lrange(rolename, 0, length)
+      roles = [member.guild.get_role(int(r)) for r in roles]
+      nick = self.cache.get(username).decode('utf-8')
+      self.cache.delete(rolename, username)
+      await member.edit(nick=nick, roles=roles, reason='Restoring properties after server removal')
 
   @commands.Cog.listener()
   async def on_member_remove(self, member: discord.Member):

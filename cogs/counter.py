@@ -47,7 +47,7 @@ class Counter(commands.Cog):
   async def on_message(self, message: discord.Message):
     # Ignore any messages from self
     member: discord.Member = message.author
-    if member != message.guild.me:
+    if message.guild and member != message.guild.me:
       # Check whether the counting channel is linked
       channelid = self.cache.hget(f'counting:{message.guild.id}', key='channelid')
       if channelid:
