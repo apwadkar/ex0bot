@@ -46,7 +46,7 @@ class Counter(commands.Cog):
       notifications_channel.send(f'{member.name}: {message.created_at}')
       # Update channel overrides
       channel: discord.TextChannel = message.channel
-      channel.set_permissions(member, send_messages=False)
+      await channel.set_permissions(member, send_messages=False)
     self.cache.hset(f'counting:{message.guild.id}', key=team, value=newval)
   
   @commands.Cog.listener()
@@ -135,7 +135,7 @@ class Counter(commands.Cog):
     await context.message.delete()
     channel_id = int(self.cache.hget(f'counting:{context.guild.id}', key='channelid'))
     channel: discord.TextChannel = context.guild.get_channel(channel_id)
-    channel.set_permissions(member, send_messages=False)
+    await channel.set_permissions(member, send_messages=False)
     await context.send(f'{member.mention} has been banned from counting.')
   
   @commands.command(name='countunban')
@@ -144,5 +144,5 @@ class Counter(commands.Cog):
     await context.message.delete()
     channel_id = int(self.cache.hget(f'counting:{context.guild.id}', key='channelid'))
     channel: discord.TextChannel = context.guild.get_channel(channel_id)
-    channel.set_permissions(member, send_messages=True)
+    await channel.set_permissions(member, send_messages=True)
     await context.send(f'{member.mention} has been unbanned from counting.')
