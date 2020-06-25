@@ -23,7 +23,6 @@ class Counter(commands.Cog):
   async def countcheck(self, team: str, base: int, message: discord.Message, userteam: str):
     member = message.author
     if userteam != team:
-      # TODO: Notify guild owner of person and time (message.guild.owner.dm_channel?.send(message.author message.created_at))
       warningset = self.cache.hget(f'counting:{message.guild.id}', key=f'warn:{message.author.id}')
       if warningset and int(warningset) == 1:
         teampenalty = float(self.cache.hget(f'counting:{message.guild.id}', key='teampenalty'))
@@ -41,6 +40,13 @@ class Counter(commands.Cog):
       await message.channel.send(f'{member.mention} messed up for team {team}!')
       newval = int(lastright * (1 - float(self.cache.hget(f'counting:{message.guild.id}', key='numpenalty'))))
       await message.channel.send(f'{team}: {tobasestring(newval, self.basemap[team])}')
+      # TODO: Notify guild owner of person and time (message.guild.owner.dm_channel?.send(message.author message.created_at))
+      notifications_channel_id = int(self.cache.hget(f'counting:{message.guild.id}', key='notifid'))
+      notifications_channel = message.guild.get_channel(notifications_channel_id)
+      notifications_channel.send(f'{member.name}: {message.created_at}')
+      # Update channel overrides
+      channel: discord.TextChannel = message.channel
+      channel.set_permissions(member, send_messages=False)
     self.cache.hset(f'counting:{message.guild.id}', key=team, value=newval)
   
   @commands.Cog.listener()
@@ -71,9 +77,10 @@ class Counter(commands.Cog):
 
   @commands.command(name='countlink')
   @commands.has_guild_permissions(administrator=True)
-  async def countlink(self, context: commands.Context, channel: discord.TextChannel):
+  async def countlink(self, context: commands.Context, channel: discord.TextChannel, notifications: discord.TextChannel):
     await context.message.delete()
     self.cache.hset(f'counting:{context.guild.id}', key='channelid', value=channel.id)
+    self.cache.hset(f'counting:{context.guild.id}', key='notifid', value=notifications.id)
     self.cache.hset(f'counting:{context.guild.id}', key='numpenalty', value=0.5)
     self.cache.hset(f'counting:{context.guild.id}', key='teampenalty', value=0.1)
     await context.send(f'Linked {channel} for counting')
@@ -122,9 +129,20 @@ class Counter(commands.Cog):
     bina = int(self.cache.hget(f'counting:{context.guild.id}', key='Binary'))
     await context.send(f'Current values: Decimal: {deci}, Hexadecimal: {hex(hexa)}, Binary: {bin(bina)}')
   
-  @commands.command(name='countteamadd')
+  @commands.command(name='countban')
   @commands.has_guild_permissions(administrator=True)
-  async def counteamadd(self, context: commands.Context, name: str, prefix: str, base: int):
-    # TODO: Implement dynamic teams not hardcoded
+  async def countban(self, context: commands.Context, member: discord.Member):
     await context.message.delete()
-    await context.send('Command unimplemented!')
+    channel_id = int(self.cache.hget(f'counting:{context.guild.id}', key='channelid'))
+    channel: discord.TextChannel = context.guild.get_channel(channel_id)
+    channel.set_permissions(member, send_messages=False)
+    await context.send(f'{member.mention} has been banned from counting.')
+  
+  @commands.command(name='countunban')
+  @commands.has_guild_permissions(administrator=True)
+  async def countunban(self, context: commands.Context, member: discord.Member):
+    await context.message.delete()
+    channel_id = int(self.cache.hget(f'counting:{context.guild.id}', key='channelid'))
+    channel: discord.TextChannel = context.guild.get_channel(channel_id)
+    channel.set_permissions(member, send_messages=True)
+    await context.send(f'{member.mention} has been unbanned from counting.')
