@@ -42,8 +42,8 @@ class Counter(commands.Cog):
       await message.channel.send(f'{team}: {tobasestring(newval, self.basemap[team])}')
       # TODO: Notify guild owner of person and time (message.guild.owner.dm_channel?.send(message.author message.created_at))
       notifications_channel_id = int(self.cache.hget(f'counting:{message.guild.id}', key='notifid'))
-      notifications_channel = message.guild.get_channel(notifications_channel_id)
-      notifications_channel.send(f'{member.name}: {message.created_at}')
+      notifications_channel: discord.TextChannel = message.guild.get_channel(notifications_channel_id)
+      await notifications_channel.send(f'{member.name}: {message.created_at}')
       # Update channel overrides
       channel: discord.TextChannel = message.channel
       await channel.set_permissions(member, send_messages=False)
