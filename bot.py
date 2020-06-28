@@ -5,6 +5,7 @@ from cogs.kick import Kick
 from cogs.role import Role
 from cogs.announce import Announce
 from cogs.counter import Counter
+from cogs.voice import Voice
 from typing import List
 
 # Settings
@@ -40,5 +41,6 @@ bot.add_cog(Kick(cache))
 bot.add_cog(Role(bot, cache))
 bot.add_cog(Announce(bot, cache))
 bot.add_cog(Counter(cache))
+bot.add_cog(Voice(cache))
 
 bot.run(settings.DISCORD_TOKEN)
