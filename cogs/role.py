@@ -87,7 +87,9 @@ class Role(commands.Cog):
           msgchannel = channel
           break
       # TODO: Make sure to add overrides if the channel *does* exist
-      if not msgchannel:
+      if msgchannel:
+        msgchannel.set_permissions(role, overwrite=discord.PermissionOverwrite(read_messages=True), reason='Adding overwrite for role message')
+      else:
         overwrites = {
           guild.default_role: discord.PermissionOverwrite(read_messages=False),
           guild.me: discord.PermissionOverwrite(read_messages=True),
