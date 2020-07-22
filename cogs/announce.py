@@ -205,6 +205,7 @@ class Announce(commands.Cog):
       ).set_author(name=author.name, icon_url=author.avatar_url)
       approval_embed.add_field(name='Title', value=title, inline=False)
       approval_embed.add_field(name='Description', value=description, inline=False)
+      # TODO: Don't require reactions
       approval_embed.add_field(name='Reactions', value=reduce(lambda current_string, react: f'{current_string} {react}', reactions, ''), inline=False)
       message: discord.Message = await admin.send(embed=approval_embed)
       approval_embed.set_footer(text=f'{message.id}')
