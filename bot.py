@@ -22,19 +22,27 @@ async def on_ready():
   print(f'Logged on as {bot.user}!')
 
 @bot.command(name="stop")
+@commands.has_guild_permissions(administrator=True)
 async def stop(context: commands.Context):
   await context.message.delete()
-  if context.author.guild_permissions.administrator:
-    await context.send('Shutting off Ex0bot...')
-    await bot.close()
-  else:
-    await context.send(f'{context.author()} is unable to stop the bot!')
+  await context.send('Shutting off Ex0bot...')
+  await bot.close()
+  cache.close()
+
+@bot.command(name="loglink")
+@commands.has_guild_permissions(administrator=True)
+async def loglink(context: commands.Context, channel: discord.TextChannel):
+  await context.message.delete()
+  cache.hset(f'guild:{context.guild.id}', 'logchannel', channel.id)
+  await context.send(f'Linked channel {channel} for logging')
 
 @bot.event
 async def on_message(message: discord.Message):
   # Ignore any messages from self
   if message.author != bot.user:
     # print('Message from {0.author}: {0.content}'.format(message))
+    if 'kachoe' in message.content:
+      await message.channel.send('<:kachoe:737926572631392296>')
     await bot.process_commands(message)
 
 bot.add_cog(Kick(cache))
