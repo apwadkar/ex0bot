@@ -43,6 +43,7 @@ async def on_message(message: discord.Message):
     # print('Message from {0.author}: {0.content}'.format(message))
     if 'kachoe' in message.content:
       await message.channel.send('<:kachoe:737926572631392296>')
+      await message.add_reaction('<:kachoe:737926572631392296>')
     await bot.process_commands(message)
 
 bot.add_cog(Kick(cache))
