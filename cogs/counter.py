@@ -137,7 +137,7 @@ class Counter(commands.Cog):
     await context.message.delete()
     if goal >= 0:
       self.cache.hset(counting_key(context.guild.id), key='Goal', value=goal)
-      for team, base in self.basemap:
+      for team, _ in self.basemap:
         self.cache.hset(counting_key(context.guild.id), key=f'{team}:win', value=0)
     await context.send(f'Set goal for each team: Decimal: {goal}, Hexadecimal: {hex(goal)}, Binary: {bin(goal)}')
   
