@@ -1,3 +1,10 @@
+Changes:
  - Added patch notes
  - Changed channel linking to show channel "mention"
  - Added better logging
+
+Upcoming Features
+ - Work on phase 1 of the challenge has begun but will definitely take time since I'm in this alone.
+ - For this phase, I will announce when it begins via a patch note and give a starting hint.
+ I will not do this for future parts, as I want to keep things a surprise, but generally things will follow a theme.
+ I'm thinking of also including a hint for the next "phase" after completion of one, since I don't want people to be super confused.
