@@ -1,5 +1,6 @@
 import redis
 import discord
+import datetime
 from discord.ext import commands
 from cogs.kick import Kick
 from cogs.role import Role
@@ -19,6 +20,19 @@ bot = commands.Bot(command_prefix='$')
 @bot.event
 async def on_ready():
   # Confirm that we logged into the bot user successfully
+  today = datetime.date.today()
+  date_string = today.strftime('%m-%d-%Y')
+  file_name = f'patch-notes/{date_string}.txt'
+  with open(file_name, 'r') as patch_notes:
+    notes = patch_notes.read()
+    for guild in bot.guilds:
+      channel = cache.hget(f'guild:{guild.id}', 'patchchannel')
+      guild: discord.Guild = guild
+      if channel:
+        await guild.get_channel(int(channel)).send(embed=discord.Embed(
+          title=f'Patch notes for {date_string}',
+          description=notes
+        ))
   print(f'Logged on as {bot.user}!')
 
 @bot.command(name="stop")
@@ -29,21 +43,28 @@ async def stop(context: commands.Context):
   await bot.close()
   cache.close()
 
+@bot.command(name="patchlink")
+@commands.has_guild_permissions(administrator=True)
+async def patchlink(context: commands.Context, channel: discord.TextChannel):
+  await context.message.delete()
+  cache.hset(f'guild:{context.guild.id}', 'patchchannel', channel.id)
+  await context.send(f'Linked channel {channel.mention} for patch notes')
+
 @bot.command(name="loglink")
 @commands.has_guild_permissions(administrator=True)
 async def loglink(context: commands.Context, channel: discord.TextChannel):
   await context.message.delete()
   cache.hset(f'guild:{context.guild.id}', 'logchannel', channel.id)
-  await context.send(f'Linked channel {channel} for logging')
+  await context.send(f'Linked channel {channel.mention} for logging')
 
 @bot.event
 async def on_message(message: discord.Message):
   # Ignore any messages from self
   if message.author != bot.user:
     # print('Message from {0.author}: {0.content}'.format(message))
-    if 'kachoe' in message.content:
-      await message.channel.send('<:kachoe:737926572631392296>')
-      await message.add_reaction('<:kachoe:737926572631392296>')
+    # if 'kachoe' in message.content:
+    #   await message.channel.send('<:kachoe:737926572631392296>')
+    #   await message.add_reaction('<:kachoe:737926572631392296>')
     await bot.process_commands(message)
 
 bot.add_cog(Kick(cache))

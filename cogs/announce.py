@@ -174,7 +174,7 @@ class Announce(commands.Cog):
     await context.message.delete()
     self.cache.hset(f'announcement:{context.guild.id}', key='channelid', value=announcement.id)
     self.cache.hset(f'announcement:{context.guild.id}', key='adminchannelid', value=admin.id)
-    await context.send(f'{announcement.name} and {admin.name} linked for announcement suggestions')
+    await context.send(f'{announcement.mention} and {admin.mention} linked for announcement suggestions')
   
   @commands.command(name='announceul')
   @commands.has_guild_permissions(administrator=True)
