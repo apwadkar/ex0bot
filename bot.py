@@ -7,6 +7,7 @@ from cogs.role import Role
 from cogs.announce import Announce
 from cogs.counter import Counter
 from cogs.voice import Voice
+from utils.logs import Logger
 from typing import List
 
 # Settings
@@ -17,9 +18,7 @@ cache = redis.Redis.from_url(url=settings.REDIS_URL)
 
 bot = commands.Bot(command_prefix='$')
 
-@bot.event
-async def on_ready():
-  # Confirm that we logged into the bot user successfully
+async def patch_show():
   today = datetime.date.today()
   date_string = today.strftime('%m-%d-%Y')
   file_name = f'patch-notes/{date_string}.txt'
@@ -33,6 +32,11 @@ async def on_ready():
           title=f'Patch notes for {date_string}',
           description=notes
         ))
+
+@bot.event
+async def on_ready():
+  # Confirm that we logged into the bot user successfully
+  await patch_show()
   print(f'Logged on as {bot.user}!')
 
 @bot.command(name="stop")
@@ -50,26 +54,18 @@ async def patchlink(context: commands.Context, channel: discord.TextChannel):
   cache.hset(f'guild:{context.guild.id}', 'patchchannel', channel.id)
   await context.send(f'Linked channel {channel.mention} for patch notes')
 
-@bot.command(name="loglink")
-@commands.has_guild_permissions(administrator=True)
-async def loglink(context: commands.Context, channel: discord.TextChannel):
-  await context.message.delete()
-  cache.hset(f'guild:{context.guild.id}', 'logchannel', channel.id)
-  await context.send(f'Linked channel {channel.mention} for logging')
-
 @bot.event
 async def on_message(message: discord.Message):
   # Ignore any messages from self
   if message.author != bot.user:
-    # print('Message from {0.author}: {0.content}'.format(message))
-    # if 'kachoe' in message.content:
-    #   await message.channel.send('<:kachoe:737926572631392296>')
-    #   await message.add_reaction('<:kachoe:737926572631392296>')
     await bot.process_commands(message)
 
-bot.add_cog(Kick(cache))
+logger = Logger(cache)
+
+bot.add_cog(logger)
+bot.add_cog(Kick(cache, logger))
 bot.add_cog(Role(bot, cache))
-bot.add_cog(Announce(bot, cache))
+bot.add_cog(Announce(bot, cache, logger))
 bot.add_cog(Counter(cache))
 bot.add_cog(Voice(cache))
 

@@ -1,2 +1,3 @@
  - Added patch notes
  - Changed channel linking to show channel "mention"
+ - Added better logging

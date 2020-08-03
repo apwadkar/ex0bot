@@ -3,14 +3,16 @@ import discord
 from discord.ext import commands
 from functools import reduce
 from typing import List
+from utils.logs import Logger
 
 def announce_key(message_id):
   return f'announce:{message_id}'
 
 class Announce(commands.Cog):
-  def __init__(self, bot: discord.Client, cache: redis.Redis):
+  def __init__(self, bot: discord.Client, cache: redis.Redis, logger: Logger):
     self.cache = cache
     self.bot = bot
+    self.logger = logger
     self.subcommands = dict({
       'create': self.create,
       'remove': self.remove,
@@ -33,6 +35,7 @@ class Announce(commands.Cog):
       await message.add_reaction(reaction)
       role: discord.Role = await announce_channel.guild.create_role(name=f'{title}:{reaction}', mentionable=True)
       self.cache.hset(announce_key(message.id), key=f'{reaction}', value=role.id)
+    await self.logger.log(type(self), f'{author.mention} created an announcement in {announce_channel.mention}', author.guild)
 
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -56,15 +59,18 @@ class Announce(commands.Cog):
             await self.announce_create(author, title, description, guild.get_channel(int(announce_id)), *reactions)
             self.cache.delete(announce_key(message.id), f'{announce_key(message.id)}:reacts')
             await message.delete()
+            await self.logger.log(type(self), f'Announcement has been approved by {user.mention}', guild)
         elif payload.emoji == '👎':
           # TODO: Request a reason and send reason to original author
           self.cache.delete(announce_key(message.id), f'{announce_key(message.id)}:reacts')
           await message.delete()
+          await self.logger.log(type(self), f'Announcement has been denied by {user.mention}', guild)
       else:
         roleid = self.cache.hget(name=announce_key(message.id), key=f'{payload.emoji}')
         if roleid:
-          role = guild.get_role(int(roleid))
+          role: discord.Role = guild.get_role(int(roleid))
           await user.add_roles(role)
+          await self.logger.log(type(self), f'Added {role.name} to {user.mention}', guild)
   
   @commands.Cog.listener()
   async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
