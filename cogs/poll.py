@@ -20,7 +20,7 @@ class Poll(commands.Cog):
     embed = discord.Embed(
       title = title,
       description = desc
-    )
+    ).set_author(name=context.author.name, icon_url=context.author.avatar_url)
     message: discord.Message = await context.send(embed=embed)
     embed.set_footer(text=message.id)
     await message.edit(embed=embed)
