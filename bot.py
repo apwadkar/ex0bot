@@ -7,6 +7,7 @@ from cogs.role import Role
 from cogs.announce import Announce
 from cogs.counter import Counter
 from cogs.voice import Voice
+from cogs.poll import Poll
 from utils.logs import Logger
 from typing import List
 
@@ -57,7 +58,7 @@ async def patchlink(context: commands.Context, channel: discord.TextChannel):
 @bot.event
 async def on_message(message: discord.Message):
   # Ignore any messages from self
-  if message.author != bot.user:
+  if message.author != bot.user and not cache.sismember('blocked', message.author.id):
     await bot.process_commands(message)
 
 logger = Logger(cache)
@@ -68,5 +69,22 @@ bot.add_cog(Role(bot, cache))
 bot.add_cog(Announce(bot, cache, logger))
 bot.add_cog(Counter(cache))
 bot.add_cog(Voice(cache))
+bot.add_cog(Poll(cache))
+
+@bot.command(name='block')
+@commands.has_guild_permissions(administrator=True)
+async def block(context: commands.Context, member: discord.Member):
+  await context.message.delete()
+  cache.sadd('blocked', member.id)
+  await context.send(f'Blocked {member.mention} from using bot commands')
+  await logger.log(commands.Bot.__name__, f'{context.member.mention}: Blocked {member.mention} from using bot commands', context.guild)
+
+@bot.command(name='unblock')
+@commands.has_guild_permissions(administrator=True)
+async def unblock(context: commands.Context, member: discord.Member):
+  await context.message.delete()
+  cache.srem('blocked', member.id)
+  await context.send(f'Unblocked {member.mention} from using bot commands')
+  await logger.log(commands.Bot.__name__, f'{context.member.mention}: Unblocked {member.mention} from using bot commands', context.guild)
 
 bot.run(settings.DISCORD_TOKEN)

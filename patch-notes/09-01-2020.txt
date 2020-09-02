@@ -1,0 +1,4 @@
+Features:
+  - Added polling feature (basically announcements but without the roles)
+  - Anyone can make a poll, but only admins can delete a poll
+  - To make a poll simply do: `$pollc "<title>" "<description>"` and it'll auto add 2 emojis as reactions
