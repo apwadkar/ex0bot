@@ -1,0 +1,4 @@
+Features:
+  - Added voice chat roulette: `$vcrr <ID of voice channel>`
+    - To get ID of channel, right click channel and click "Copy ID"
+    - If you don't see that, you might need to turn on developer settings in your Discord

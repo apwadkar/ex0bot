@@ -1,6 +1,7 @@
 import redis
 import discord
-import datetime
+from datetime import datetime
+from pytz import timezone
 from discord.ext import commands
 from cogs.kick import Kick
 from cogs.role import Role
@@ -20,19 +21,23 @@ cache = redis.Redis.from_url(url=settings.REDIS_URL)
 bot = commands.Bot(command_prefix='$')
 
 async def patch_show():
-  today = datetime.date.today()
+  aztz = timezone('America/Phoenix')
+  today = datetime.now(aztz)
   date_string = today.strftime('%m-%d-%Y')
   file_name = f'patch-notes/{date_string}.txt'
-  with open(file_name, 'r') as patch_notes:
-    notes = patch_notes.read()
-    for guild in bot.guilds:
-      channel = cache.hget(f'guild:{guild.id}', 'patchchannel')
-      guild: discord.Guild = guild
-      if channel:
-        await guild.get_channel(int(channel)).send(embed=discord.Embed(
-          title=f'Patch notes for {date_string}',
-          description=notes
-        ))
+  try:
+    with open(file_name, 'r') as patch_notes:
+      notes = patch_notes.read()
+      for guild in bot.guilds:
+        channel = cache.hget(f'guild:{guild.id}', 'patchchannel')
+        guild: discord.Guild = guild
+        if channel:
+          await guild.get_channel(int(channel)).send(embed=discord.Embed(
+            title=f'Patch notes for {date_string}',
+            description=notes
+          ))
+  except:
+    pass
 
 @bot.event
 async def on_ready():

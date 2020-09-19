@@ -1,5 +1,6 @@
 import redis
 import discord
+import random
 from discord.ext import commands
 from typing import List
 
@@ -18,7 +19,7 @@ class Voice(commands.Cog):
           self.cache.delete(f'channel:{voice_channel.id}')
           await voice_channel.delete(reason='No more users left in channel')
   
-  @commands.command("vcnew")
+  @commands.command('vcnew')
   async def vcnew(self, context: commands.Context, name: str = 'Temporary Channel', role: discord.Role = None):
     await context.message.delete()
     voice_state: discord.VoiceState = context.author.voice
@@ -37,10 +38,17 @@ class Voice(commands.Cog):
     else:
       await context.send('You must be in a voice channel to make a channel.')
 
-  @commands.command("vcmove")
+  @commands.command('vcmove')
   @commands.has_guild_permissions(administrator=True)
   async def vcmove(self, context: commands.Context, fromvc: discord.VoiceChannel, tovc: discord.VoiceChannel):
     await context.message.delete()
     for member in fromvc.members:
-      await member.move_to(tovc, reason=f"Mass move called by {context.author}")
-    await context.send(f"Successfully moved all members in {fromvc.name} to {tovc.name}")
+      await member.move_to(tovc, reason=f'Mass move called by {context.author}')
+    await context.send(f'Successfully moved all members in {fromvc.name} to {tovc.name}')
+  
+  @commands.command('vcrr')
+  async def vcroulette(self, context: commands.Context, vc: discord.VoiceChannel):
+    await context.message.delete()
+    member: discord.Member = random.choice(vc.members)
+    await context.send(f'{member.name} has been eliminated from {vc.name}')
+    await member.move_to(None, reason=f'Eliminated')
