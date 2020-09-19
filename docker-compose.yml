@@ -1,0 +1,7 @@
+version: '3'
+services:
+  ex0bot:
+    build: .
+    restart: on-failure
+  redis-server:
+    image: 'redis'
