@@ -2,7 +2,7 @@ import redis
 import discord
 import random
 from discord.ext import commands
-from typing import List
+from typing import List, Optional
 
 Members = List[discord.Member]
 
@@ -47,8 +47,14 @@ class Voice(commands.Cog):
     await context.send(f'Successfully moved all members in {fromvc.name} to {tovc.name}')
   
   @commands.command('vcrr')
-  async def vcroulette(self, context: commands.Context, vc: discord.VoiceChannel):
+  async def vcroulette(self, context: commands.Context, vc: Optional[discord.VoiceChannel]):
     await context.message.delete()
+    if not vc:
+      if context.author.voice:
+        vc = context.author.voice.channel
+      else:
+        await context.send('You must be in a voice channel or specify a channel')
+        return
     member: discord.Member = random.choice(vc.members)
-    await context.send(f'{member.name} has been eliminated from {vc.name}')
+    await context.send(f'{member.name} has been eliminated from {vc.name} by {context.author.mention}')
     await member.move_to(None, reason=f'Eliminated')
