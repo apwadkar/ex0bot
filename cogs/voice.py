@@ -47,6 +47,7 @@ class Voice(commands.Cog):
     await context.send(f'Successfully moved all members in {fromvc.name} to {tovc.name}')
   
   @commands.command('vcrr')
+  @commands.has_guild_permissions(administrator=True)
   async def vcroulette(self, context: commands.Context, vc: Optional[discord.VoiceChannel]):
     await context.message.delete()
     if not vc:
