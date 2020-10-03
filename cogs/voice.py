@@ -20,21 +20,28 @@ class Voice(commands.Cog):
           await voice_channel.delete(reason='No more users left in channel')
   
   @commands.command('vcnew')
-  async def vcnew(self, context: commands.Context, name: str = 'Temporary Channel', role: discord.Role = None):
+  async def vcnew(self, context: commands.Context, name: str = 'Temporary Channel', role: Optional[discord.Role] = None, limit: Optional[int] = None):
     await context.message.delete()
     voice_state: discord.VoiceState = context.author.voice
     if voice_state:
-      parent_category: discord.CategoryChannel = context.channel.category
-      overwrites = {
-        context.guild.default_role: discord.PermissionOverwrite(view_channel=False),
-        role: discord.PermissionOverwrite(view_channel=True)
-      } if role else {}
-      voice_channel: discord.VoiceChannel = \
-        await parent_category.create_voice_channel(name, overwrites=overwrites, reason=f'Temporary channel requested by {context.author}')
-      self.cache.set(f'channel:{voice_channel.id}', 1)
-      await context.send('Temporary channel created. Moving you into it...')
       author: discord.Member = context.author
-      await author.move_to(voice_channel, reason='Moving to newly created temporary channel')
+      if role in author.roles:
+        parent_category: discord.CategoryChannel = voice_state.channel.category
+        overwrites = {
+          context.guild.default_role: discord.PermissionOverwrite(view_channel=False),
+          role: discord.PermissionOverwrite(view_channel=True)
+        } if role else {}
+        if limit:
+          voice_channel: discord.VoiceChannel = \
+            await parent_category.create_voice_channel(name, overwrites=overwrites, reason=f'Temporary channel requested by {context.author}', user_limit=limit)
+        else:  
+          voice_channel: discord.VoiceChannel = \
+            await parent_category.create_voice_channel(name, overwrites=overwrites, reason=f'Temporary channel requested by {context.author}')
+        self.cache.set(f'channel:{voice_channel.id}', 1)
+        await context.send('Temporary channel created. Moving you into it...')
+        await author.move_to(voice_channel, reason='Moving to newly created temporary channel')
+      else:
+        await context.send('You do not have that role.')
     else:
       await context.send('You must be in a voice channel to make a channel.')
 

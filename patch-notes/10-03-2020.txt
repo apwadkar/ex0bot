@@ -1,0 +1,8 @@
+Features:
+  - Temporary voice channels can now have a set limit of members
+  - `$vcnew "<name>" ("<role name>" OR @<role mention>) (<limit>)`
+  - Roles are optional and do not need to be supplied for a limit
+
+Fixes:
+  - You can no longer make a temporary voice channel for a role you don't have
+  - The temporary channel will be made in the same category of the voice channel you are in currently, not in the one from the text channel you entered the command.
