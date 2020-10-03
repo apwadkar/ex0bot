@@ -25,7 +25,7 @@ class Voice(commands.Cog):
     voice_state: discord.VoiceState = context.author.voice
     if voice_state:
       author: discord.Member = context.author
-      if role in author.roles:
+      if role in author.roles or not role:
         parent_category: discord.CategoryChannel = voice_state.channel.category
         overwrites = {
           context.guild.default_role: discord.PermissionOverwrite(view_channel=False),
