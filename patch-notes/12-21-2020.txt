@@ -1,0 +1,6 @@
+Features:
+- Announcement requests are broken right now, so I disabled them until I can fix them.
+- To create a new VC, you need to do: '$vc new "name" ("role name" or @role mention) (limit)'
+
+Fixes:
+- The bot works now
