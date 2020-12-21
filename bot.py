@@ -18,7 +18,13 @@ import settings
 # Connect to Redis backend cache
 cache = redis.Redis.from_url(url=settings.REDIS_URL)
 
-bot = commands.Bot(command_prefix='$')
+logger = Logger(cache)
+
+# Configure member caching intent
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix='$', intents=intents)
 
 async def patch_show():
   aztz = timezone('America/Phoenix')
@@ -62,11 +68,9 @@ async def patchlink(context: commands.Context, channel: discord.TextChannel):
 
 @bot.event
 async def on_message(message: discord.Message):
-  # Ignore any messages from self
+  # Ignore any messages from self or blocked people
   if message.author != bot.user and not cache.sismember('blocked', message.author.id):
     await bot.process_commands(message)
-
-logger = Logger(cache)
 
 bot.add_cog(logger)
 bot.add_cog(Kick(cache, logger))

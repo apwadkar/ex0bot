@@ -9,24 +9,26 @@ class Role(commands.Cog):
   
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-    channel: discord.Channel = self.bot.get_channel(payload.channel_id)
+    channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
     message: discord.Message = await channel.fetch_message(payload.message_id)
-    user: discord.Member = channel.guild.get_member(payload.user_id)
-    if user != message.guild.me:
+    guild: discord.Guild = self.bot.get_guild(payload.guild_id)
+    user: discord.Member = guild.get_member(payload.user_id)
+    if user != guild.me:
       roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
       if roleid:
-        role = user.guild.get_role(int(roleid))
+        role = guild.get_role(int(roleid))
         await user.add_roles(role)
   
   @commands.Cog.listener()
   async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-    channel: discord.Channel = self.bot.get_channel(payload.channel_id)
+    channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
     message: discord.Message = await channel.fetch_message(payload.message_id)
-    user: discord.Member = channel.guild.get_member(payload.user_id)
-    if user != message.guild.me:
+    guild: discord.Guild = self.bot.get_guild(payload.guild_id)
+    user: discord.Member = guild.get_member(payload.user_id)
+    if user != guild.me:
       roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
       if roleid:
-        role = user.guild.get_role(int(roleid))
+        role = guild.get_role(int(roleid))
         await user.remove_roles(role)
 
   @commands.Cog.listener()
@@ -47,19 +49,15 @@ class Role(commands.Cog):
         role = user.guild.get_role(int(roleid))
         await user.remove_roles(role)
 
-  @commands.command(name='role')
+  @commands.group(name='role')
   @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
-  async def role(self, context: commands.Context, subcommand: str, *args):
-    if subcommand == 'create':
-      await context.invoke(self.create, *args)
-    elif subcommand == 'remove' or subcommand == 'delete':
-      await context.invoke(self.remove, *args)
-    else:
+  async def role(self, context: commands.Context):
+    if not context.invoked_subcommand:
       await context.message.delete()
       await context.send('Invalid role subcommand!')
   
-  @commands.command(name='rolec')
-  @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
+  @role.command(name='create')
+  # @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
   async def create(self, context: commands.Context, name: str, channelName: str = ''):
     await context.message.delete()
     guild: discord.Guild = context.guild
@@ -104,8 +102,8 @@ class Role(commands.Cog):
       self.cache.hset(name=f'role:{msg.id}', key='roleid', value=msgrole.id)
       await msg.add_reaction('👍')
   
-  @commands.command(name='roled')
-  @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
+  @role.command(name='remove')
+  # @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
   async def remove(
     self,
     context: commands.Context,

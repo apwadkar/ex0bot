@@ -19,7 +19,13 @@ class Voice(commands.Cog):
           self.cache.delete(f'channel:{voice_channel.id}')
           await voice_channel.delete(reason='No more users left in channel')
   
-  @commands.command('vcnew')
+  @commands.group(name='vc')
+  async def vc(self, context: commands.Context):
+    if not context.invoked_subcommand:
+      await context.message.delete()
+      await context.send('Invalid vc subcommand')
+  
+  @vc.command('new')
   async def vcnew(self, context: commands.Context, name: str = 'Temporary Channel', role: Optional[discord.Role] = None, limit: Optional[int] = None):
     await context.message.delete()
     voice_state: discord.VoiceState = context.author.voice
@@ -45,7 +51,7 @@ class Voice(commands.Cog):
     else:
       await context.send('You must be in a voice channel to make a channel.')
 
-  @commands.command('vcmove')
+  @vc.command('move')
   @commands.has_guild_permissions(administrator=True)
   async def vcmove(self, context: commands.Context, fromvc: discord.VoiceChannel, tovc: discord.VoiceChannel):
     await context.message.delete()
@@ -53,7 +59,7 @@ class Voice(commands.Cog):
       await member.move_to(tovc, reason=f'Mass move called by {context.author}')
     await context.send(f'Successfully moved all members in {fromvc.name} to {tovc.name}')
   
-  @commands.command('vcrr')
+  @vc.command('roulette')
   @commands.has_guild_permissions(administrator=True)
   async def vcroulette(self, context: commands.Context, vc: Optional[discord.VoiceChannel]):
     await context.message.delete()
