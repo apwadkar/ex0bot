@@ -12,12 +12,23 @@ class Voice(commands.Cog):
   
   @commands.Cog.listener()
   async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    if before.channel and after.channel != before.channel:
-      voice_channel: discord.VoiceChannel = before.channel
-      if self.cache.get(f'channel:{voice_channel.id}'):
-        if not voice_channel.members:
-          self.cache.delete(f'channel:{voice_channel.id}')
-          await voice_channel.delete(reason='No more users left in channel')
+    before_channel: discord.VoiceChannel = before.channel
+    after_channel: discord.VoiceChannel = after.channel
+    if before_channel and after_channel != before_channel and self.cache.get(f'tempchannel:{before_channel.id}'):
+      print('delete temp vc')
+      if not before_channel.members:
+        self.cache.delete(f'tempchannel:{before_channel.id}')
+        await before_channel.delete(reason='No more users left in channel')
+    if after_channel and self.cache.get(f'channel:{after_channel.id}'):
+      print('making new vc')
+      parent_category: discord.CategoryChannel = after_channel.category
+      overwrites = {
+        member: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True)
+      }
+      voice_channel: discord.VoiceChannel = \
+        await parent_category.create_voice_channel('Temp VC', overwrites=overwrites, reason=f'Temporary channel requested by {member}')
+      await member.move_to(voice_channel)
+      self.cache.set(f'tempchannel:{voice_channel.id}', 1)
   
   @commands.group(name='vc')
   async def vc(self, context: commands.Context):
@@ -25,13 +36,28 @@ class Voice(commands.Cog):
       await context.message.delete()
       await context.send('Invalid vc subcommand')
   
+  # This should create and link the staging VC for creating a new temp vc
+  @vc.command('templink')
+  @commands.has_guild_permissions(administrator = True)
+  async def vctemplink(self, context: commands.Context, channel: discord.VoiceChannel):
+    await context.message.delete()
+    self.cache.set(f'channel:{channel.id}', 1)
+    await context.send(f'{channel.name} has been linked')
+  
+  @vc.command('tempunlink')
+  @commands.has_guild_permissions(administrator = True)
+  async def vctempunlink(self, context: commands.Context, channel: discord.VoiceChannel):
+    await context.message.delete()
+    self.cache.delete(f'channel:{channel.id}')
+    await context.send(f'{channel.name} has been unlinked')
+
   @vc.command('new')
   async def vcnew(self, context: commands.Context, name: str = 'Temporary Channel', role: Optional[discord.Role] = None, limit: Optional[int] = None):
     await context.message.delete()
+    author: discord.Member = context.author
     voice_state: discord.VoiceState = context.author.voice
     if voice_state:
-      author: discord.Member = context.author
-      if role in author.roles or not role:
+      if not role or role in author.roles:
         parent_category: discord.CategoryChannel = voice_state.channel.category
         overwrites = {
           context.guild.default_role: discord.PermissionOverwrite(view_channel=False),
@@ -43,7 +69,7 @@ class Voice(commands.Cog):
         else:  
           voice_channel: discord.VoiceChannel = \
             await parent_category.create_voice_channel(name, overwrites=overwrites, reason=f'Temporary channel requested by {context.author}')
-        self.cache.set(f'channel:{voice_channel.id}', 1)
+        self.cache.set(f'tempchannel:{voice_channel.id}', 1)
         await context.send('Temporary channel created. Moving you into it...')
         await author.move_to(voice_channel, reason='Moving to newly created temporary channel')
       else:
