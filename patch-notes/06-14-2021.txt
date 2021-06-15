@@ -1,0 +1,6 @@
+Features:
+ - After being tormented by William, I finally added a "best of" feature for the bot
+ - A message will have to reach a certain number of ⭐ reactions before being posted to the channel.
+ - If the value of the cutoff ever changes, I'll post the new number.
+ - If the message drops below the cutoff, the bestof entry will be deleted
+ - I don't think images and links will work properly, but react to them anyways so I can fix them later

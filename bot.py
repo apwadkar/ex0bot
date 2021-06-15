@@ -9,6 +9,7 @@ from cogs.announce import Announce
 from cogs.counter import Counter
 from cogs.voice import Voice
 from cogs.poll import Poll
+from cogs.bestof import Bestof
 from utils.logs import Logger
 from typing import List
 
@@ -79,6 +80,7 @@ bot.add_cog(Announce(bot, cache, logger))
 bot.add_cog(Counter(cache))
 bot.add_cog(Voice(cache))
 bot.add_cog(Poll(cache))
+bot.add_cog(Bestof(bot, cache, logger))
 
 @bot.command(name='block')
 @commands.has_guild_permissions(administrator=True)

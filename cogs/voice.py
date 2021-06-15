@@ -15,12 +15,10 @@ class Voice(commands.Cog):
     before_channel: discord.VoiceChannel = before.channel
     after_channel: discord.VoiceChannel = after.channel
     if before_channel and after_channel != before_channel and self.cache.get(f'tempchannel:{before_channel.id}'):
-      print('delete temp vc')
       if not before_channel.members:
         self.cache.delete(f'tempchannel:{before_channel.id}')
         await before_channel.delete(reason='No more users left in channel')
     if after_channel and self.cache.get(f'channel:{after_channel.id}'):
-      print('making new vc')
       parent_category: discord.CategoryChannel = after_channel.category
       overwrites = {
         member: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True)

@@ -75,47 +75,6 @@ class Announce(commands.Cog):
         role = user.guild.get_role(int(roleid))
         await user.remove_roles(role)
   
-  @commands.Cog.listener()
-  async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
-    message: discord.Message = reaction.message
-    guild: discord.Guild = message.guild
-    if user != guild.me:
-      requested = bool(self.cache.hget(name=announce_key(message.id), key='requested'))
-      if requested:
-        if reaction.emoji == '👍':
-          announce_id = self.cache.hget(f'announcement:{guild.id}', key='channelid')
-          if not announce_id:
-            await message.channel.send('You must link an announcement channel!')
-          else:
-            size = int(self.cache.llen(f'{announce_key(message.id)}:reacts'))
-            reactions = [x.decode('utf-8') for x in self.cache.lrange(f'{announce_key(message.id)}:reacts', 0, size)]
-            title = self.cache.hget(announce_key(message.id), key='title').decode('utf-8')
-            description = self.cache.hget(announce_key(message.id), key='description').decode('utf-8')
-            author = guild.get_member(int(self.cache.hget(announce_key(message.id), key='requester')))
-            await self.announce_create(author, title, description, guild.get_channel(int(announce_id)), *reactions)
-            await message.delete()
-            self.cache.delete(announce_key(message.id), f'{announce_key(message.id)}:reacts')
-        elif reaction.emoji == '👎':
-          # TODO: Request a reason and send reason to original author
-          author: discord.Member = guild.get_member(int(self.cache.hget(announce_key(message.id), key='requester')))
-          await author.send(f'Your announcement has been rejected by {user.mention}')
-          await message.delete()
-          await self.logger.log(type(self), f'Announcement has been denied by {user.mention}', guild)
-      else:
-        roleid = self.cache.hget(name=announce_key(message.id), key=f'{reaction}')
-        if roleid:
-          role: discord.Role = user.guild.get_role(int(roleid))
-          await user.add_roles(role)
-
-  @commands.Cog.listener()
-  async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.Member):
-    if user != reaction.message.guild.me:
-      message: discord.Message = reaction.message
-      roleid = self.cache.hget(name=announce_key(message.id), key=f'{reaction}')
-      if roleid:
-        role: discord.Role  = user.guild.get_role(int(roleid))
-        await user.remove_roles(role)
-
   @commands.group(name='announce')
   @commands.has_role('Announcer')
   async def announce(self, context: commands.Context):

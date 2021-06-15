@@ -31,24 +31,6 @@ class Role(commands.Cog):
         role = guild.get_role(int(roleid))
         await user.remove_roles(role)
 
-  @commands.Cog.listener()
-  async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
-    if user != reaction.message.guild.me:
-      message: discord.Message = reaction.message
-      roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
-      if roleid:
-        role = user.guild.get_role(int(roleid))
-        await user.add_roles(role)
-
-  @commands.Cog.listener()
-  async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.Member):
-    if user != reaction.message.guild.me:
-      message = reaction.message
-      roleid = self.cache.hget(name=f'role:{message.id}', key='roleid')
-      if roleid:
-        role = user.guild.get_role(int(roleid))
-        await user.remove_roles(role)
-
   @commands.group(name='role')
   @commands.has_guild_permissions(manage_roles=True, manage_channels=True)
   async def role(self, context: commands.Context):
