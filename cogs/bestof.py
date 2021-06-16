@@ -62,11 +62,12 @@ class Bestof(commands.Cog):
                 image_set = True
             embed = embed.add_field(name=f'Attachment {i}', value=attach.url)
         channel_id = int(self.cache.hget(bestof_key(guild.id), 'channel'))
-        channel: discord.TextChannel = guild.get_channel(channel_id)
-        message: discord.Message = await channel.send(embed=embed)
-        embed.set_footer(text=f'Original ID: {bomsg.id} | Embed ID: {message.id}')
-        await message.edit(embed=embed)
-        self.cache.hset(bestof_key(guild.id), bomsg.id, message.id)
+        if bomsg.channel.id != channel_id:
+            channel: discord.TextChannel = guild.get_channel(channel_id)
+            message: discord.Message = await channel.send(embed=embed)
+            embed.set_footer(text=f'Original ID: {bomsg.id} | Embed ID: {message.id}')
+            await message.edit(embed=embed)
+            self.cache.hset(bestof_key(guild.id), bomsg.id, message.id)
 
     async def remove_embed(self, message_id: int, guild: discord.Guild):
         key = bestof_key(guild.id)
