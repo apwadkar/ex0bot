@@ -29,7 +29,7 @@ class Bestof(commands.Cog):
             message: discord.Message = await channel.fetch_message(payload.message_id)
             react: discord.Reaction = next(filter(lambda react: str(
                 react.emoji) == '⭐', message.reactions))
-            if react.count >= threshold:
+            if react.count >= threshold and int(self.cache.hexists(key, message.id)) == 0:
                 await self.post_message(message, message.author, message.guild)
 
     @commands.Cog.listener()
@@ -41,7 +41,8 @@ class Bestof(commands.Cog):
             threshold = int(self.cache.hget(key, 'cutoff'))
             channel: discord.TextChannel = await self.bot.fetch_channel(payload.channel_id)
             message: discord.Message = await channel.fetch_message(payload.message_id)
-            if len([r for r in message.reactions if r == '⭐' and r.count >= threshold]) == 0:
+            filtered = [r for r in message.reactions if r.emoji == '⭐' and r.count >= threshold]
+            if len(filtered) == 0:
                 await self.remove_embed(message.id, message.guild)
                 
     async def post_message(self, bomsg: discord.Message, author: discord.Member, guild: discord.Guild):
@@ -54,6 +55,12 @@ class Bestof(commands.Cog):
             timestamp = bomsg.created_at,
             color = discord.Color.random()
         ).set_author(name=author.name, icon_url=author.avatar_url)
+        image_set = False
+        for i, attach in enumerate(bomsg.attachments):
+            if not image_set and attach.content_type.startswith('image'):
+                embed = embed.set_image(url=attach.url)
+                image_set = True
+            embed = embed.add_field(name=f'Attachment {i}', value=attach.url)
         channel_id = int(self.cache.hget(bestof_key(guild.id), 'channel'))
         channel: discord.TextChannel = guild.get_channel(channel_id)
         message: discord.Message = await channel.send(embed=embed)
@@ -65,6 +72,7 @@ class Bestof(commands.Cog):
         key = bestof_key(guild.id)
         embed_id = int(self.cache.hget(key, message_id))
         bochannel: discord.TextChannel = guild.get_channel(int(self.cache.hget(key, 'channel')))
+        self.cache.hdel(key, message_id)
         await (await bochannel.fetch_message(embed_id)).delete()
 
     @commands.group(name='bestof')
