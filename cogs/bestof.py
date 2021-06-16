@@ -71,10 +71,12 @@ class Bestof(commands.Cog):
 
     async def remove_embed(self, message_id: int, guild: discord.Guild):
         key = bestof_key(guild.id)
-        embed_id = int(self.cache.hget(key, message_id))
-        bochannel: discord.TextChannel = guild.get_channel(int(self.cache.hget(key, 'channel')))
-        self.cache.hdel(key, message_id)
-        await (await bochannel.fetch_message(embed_id)).delete()
+        embed_id = self.cache.hget(key, message_id)
+        if embed_id:
+            embed_id = int(embed_id)
+            bochannel: discord.TextChannel = guild.get_channel(int(self.cache.hget(key, 'channel')))
+            self.cache.hdel(key, message_id)
+            await (await bochannel.fetch_message(embed_id)).delete()
 
     @commands.group(name='bestof')
     @commands.has_guild_permissions(administrator=True)
