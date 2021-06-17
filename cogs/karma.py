@@ -4,6 +4,8 @@ import random
 from discord.ext import commands
 from typing import Optional, List
 from utils.logs import Logger
+from itertools import islice
+import datetime
 
 def karma_key(guild_id: int) -> str:
   return f'karma:{guild_id}'
@@ -62,6 +64,13 @@ class Karma(commands.Cog):
   async def resetall(self, context: commands.Context):
     self.cache.delete(karma_key(context.guild.id))
     await context.send(f'{context.guild} has been reset for karma tracking')
+  
+  @karma.command(name='init')
+  @commands.has_guild_permissions(administrator=True)
+  async def init_server(self, context: commands.Context):
+    for user in context.guild.members:
+      self.cache.hsetnx(karma_key(context.guild.id), user.id, 0)
+    await context.send(f'Set all users in {context.guild} to 0 if they did not have karma before')
 
   @karma.command(name='set')
   @commands.has_guild_permissions(administrator=True)
@@ -70,10 +79,24 @@ class Karma(commands.Cog):
     await context.send(f'{user.mention} has been set to {value} karma')
 
   @karma.command(name='leaderboard')
-  async def leaderboard(self, context: commands.Context):
+  async def leaderboard(self, context: commands.Context, tops: int = 10):
     # TODO: List top 10 people and bottom 10 people
-    keys = self.cache.hkeys(karma_key(context.guild.id))
-    print(keys)
+    keys = [int(key) for key in self.cache.hkeys(karma_key(context.guild.id))]
+    vals = dict((key, int(self.cache.hget(karma_key(context.guild.id), key))) for key in keys)
+    val_map = lambda id: f'{context.guild.get_member(id)}: {vals[id]}'
+    sorted_vals = map(val_map, islice(sorted(vals, key=vals.get, reverse=True), tops))
+    rev_sorted_vals = map(val_map, islice(sorted(vals, key=vals.get), tops))
+    embed = discord.Embed(
+      title=f'Karma Leaderboard for {context.guild}',
+      color=discord.Color.random(),
+      timestamp=datetime.datetime.now()
+    ) \
+      .set_author(name=context.author.name, icon_url=context.author.avatar_url) \
+      .set_thumbnail(url=context.guild.icon_url) \
+      .add_field(name='Top 10', value='\n'.join(sorted_vals)) \
+      .add_field(name='Bottom 10', value='\n'.join(rev_sorted_vals))
+    await context.send(embed=embed)
+    
   
   @karma.command(name='link')
   @commands.has_guild_permissions(administrator=True)
