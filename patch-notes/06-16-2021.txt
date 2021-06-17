@@ -1,0 +1,5 @@
+Bugfixes:
+ - Rejoice! Custom emojis can now be used as "Best of" emojis
+  - I'll send the emoji we'll use
+ - You can no longer send message in the "Best of" channel to "Best of"
+ - Messages with attachments like images will now have links in the embed

@@ -2,7 +2,7 @@ import redis
 import discord
 from discord.ext import commands
 from functools import reduce
-from typing import Union
+from typing import List
 from utils.logs import Logger
 
 
@@ -15,39 +15,35 @@ class Bestof(commands.Cog):
         self.bot = bot
         self.cache = cache
         self.logger = logger
+    
+    def enough_reacts(self, reactions: List[discord.Reaction], key: str) -> bool:
+        ismember = lambda react: self.cache.sismember(f'{key}:emojis', str(react))
+        threshold = int(self.cache.hget(key, 'cutoff'))
+        filtered = [r for r in reactions if r.count >= threshold and ismember(r)]
+        return len(filtered) != 0
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         key = bestof_key(payload.guild_id)
-        react_emoji = str(payload.emoji)
-        # emoji = str(self.cache.hget(key, 'emoji'))
-        # if react_emoji == emoji:
-        # TODO: Allow configurable emojis
-        if react_emoji == '⭐':
-            threshold = int(self.cache.hget(key, 'cutoff'))
+        if bool(self.cache.sismember(f'{key}:emojis', str(payload.emoji))):
             channel: discord.TextChannel = await self.bot.fetch_channel(payload.channel_id)
             message: discord.Message = await channel.fetch_message(payload.message_id)
-            react: discord.Reaction = next(filter(lambda react: str(
-                react.emoji) == '⭐', message.reactions))
-            if react.count >= threshold and int(self.cache.hexists(key, message.id)) == 0:
+            if self.enough_reacts(message.reactions, key) and not bool(self.cache.hexists(key, message.id)):
                 await self.post_message(message, message.author, message.guild)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        # TODO: When creating the "bestof" message, link with original message ID
-        # if message falls below threshold, remove "bestof" message
-        if str(payload.emoji) == '⭐':
-            key = bestof_key(payload.guild_id)
-            threshold = int(self.cache.hget(key, 'cutoff'))
+        key = bestof_key(payload.guild_id)
+        if bool(self.cache.sismember(f'{key}:emojis', str(payload.emoji))):
             channel: discord.TextChannel = await self.bot.fetch_channel(payload.channel_id)
             message: discord.Message = await channel.fetch_message(payload.message_id)
-            filtered = [r for r in message.reactions if r.emoji == '⭐' and r.count >= threshold]
-            if len(filtered) == 0:
+            if not self.enough_reacts(message.reactions, key):
                 await self.remove_embed(message.id, message.guild)
                 
     async def post_message(self, bomsg: discord.Message, author: discord.Member, guild: discord.Guild):
-        self.cache.hincrby(bestof_key(guild.id), 'count', 1)
-        count = int(self.cache.hget(bestof_key(guild.id), 'count'))
+        key = bestof_key(guild.id)
+        self.cache.hincrby(key, 'count', 1)
+        count = int(self.cache.hget(key, 'count'))
         embed = discord.Embed(
             title = f'Best of {guild.name} #{count}',
             description = bomsg.content,
@@ -55,19 +51,21 @@ class Bestof(commands.Cog):
             timestamp = bomsg.created_at,
             color = discord.Color.random()
         ).set_author(name=author.name, icon_url=author.avatar_url)
+        # Add any attachments as links in fields
         image_set = False
         for i, attach in enumerate(bomsg.attachments):
             if not image_set and attach.content_type.startswith('image'):
                 embed = embed.set_image(url=attach.url)
                 image_set = True
             embed = embed.add_field(name=f'Attachment {i}', value=attach.url)
-        channel_id = int(self.cache.hget(bestof_key(guild.id), 'channel'))
+
+        channel_id = int(self.cache.hget(key, 'channel'))
         if bomsg.channel.id != channel_id:
             channel: discord.TextChannel = guild.get_channel(channel_id)
             message: discord.Message = await channel.send(embed=embed)
             embed.set_footer(text=f'Original ID: {bomsg.id} | Embed ID: {message.id}')
             await message.edit(embed=embed)
-            self.cache.hset(bestof_key(guild.id), bomsg.id, message.id)
+            self.cache.hset(key, bomsg.id, message.id)
 
     async def remove_embed(self, message_id: int, guild: discord.Guild):
         key = bestof_key(guild.id)
@@ -101,10 +99,17 @@ class Bestof(commands.Cog):
         self.cache.hdel(bestof_key(context.guild.id), 'channel')
         await context.send(f'{channel.mention} has been unlinked for bestof')
 
-    @bestof.command(name='emoji')
-    async def emoji(self, context: commands.Context, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
-        self.cache.hset(bestof_key(context.guild.id), 'emoji', str(emoji))
-        await context.send(f'{emoji} has been set as the starring emoji for this server.')
+    @bestof.command(name='addemojis')
+    async def add_emoji(self, context: commands.Context, *emojis):
+        for emoji in emojis:
+            self.cache.sadd(f'{bestof_key(context.guild.id)}:emojis', f'{emoji}')
+        await context.send(f'{", ".join(emojis)} have been set as the starring emoji for this server.')
+    
+    @bestof.command(name='delemojis')
+    async def del_emoji(self, context: commands.Context, *emojis):
+        for emoji in emojis:
+            self.cache.srem(f'{bestof_key(context.guild.id)}:emojis', f'{emoji}')
+        await context.send(f'{", ".join(emojis)} has been removed as the starring emoji for this server.')
 
     @bestof.command(name='cutoff')
     async def threshold(self, context: commands.Context, cutoff: int):
