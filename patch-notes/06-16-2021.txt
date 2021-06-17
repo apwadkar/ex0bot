@@ -3,3 +3,9 @@ Bugfixes:
   - I'll send the emoji we'll use
  - You can no longer send message in the "Best of" channel to "Best of"
  - Messages with attachments like images will now have links in the embed
+
+Features:
+ - Karma system now available in the main Shitpost channels. (shitpost and shitpost-images)
+  - If this goes well and isn't reaction spammy, I'll add it to the whole server
+ - In the next message are a list of "positive" and "negative" emojis that will increase or decrease your karma, respectively
+ - You can run '$karma get <username or mention>'

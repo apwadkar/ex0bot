@@ -3,6 +3,7 @@ import discord
 from datetime import datetime
 from pytz import timezone
 from discord.ext import commands
+from cogs.karma import Karma
 from cogs.kick import Kick
 from cogs.role import Role
 from cogs.announce import Announce
@@ -81,6 +82,7 @@ bot.add_cog(Counter(cache))
 bot.add_cog(Voice(cache))
 bot.add_cog(Poll(cache))
 bot.add_cog(Bestof(bot, cache, logger))
+bot.add_cog(Karma(bot, cache, logger))
 
 @bot.command(name='block')
 @commands.has_guild_permissions(administrator=True)
