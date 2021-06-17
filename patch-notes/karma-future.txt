@@ -1,4 +1,0 @@
-Features:
- - Karma system now available in the main Shitpost channels.
- - In the next message are a list of "positive" and "negative" emojis that will increase or decrease your karma, respectively
- - You can run '$karma list <username or mention>'

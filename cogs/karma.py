@@ -2,7 +2,7 @@ import redis
 import discord
 import random
 from discord.ext import commands
-from typing import Optional
+from typing import Optional, List
 from utils.logs import Logger
 
 def karma_key(guild_id: int) -> str:
@@ -20,7 +20,7 @@ class Karma(commands.Cog):
     message: discord.Message = await channel.fetch_message(payload.message_id)
     author_id: int = message.author.id
     key = karma_key(message.guild.id)
-    if self.cache.sismember(f'{key}:channels', channel.id) and payload.member.id != author_id:
+    if self.cache.sismember(f'{key}:channels', channel.id) and payload.user_id != author_id:
       if self.cache.sismember(f'{key}:positive', str(payload.emoji)):
         self.cache.hincrby(key, author_id, 1)
       elif self.cache.sismember(f'{key}:negative', str(payload.emoji)):
@@ -32,7 +32,7 @@ class Karma(commands.Cog):
     message: discord.Message = await channel.fetch_message(payload.message_id)
     author_id: int = message.author.id
     key = karma_key(message.guild.id)
-    if self.cache.sismember(f'{key}:channels', channel.id) and payload.member.id != author_id:
+    if self.cache.sismember(f'{key}:channels', channel.id) and payload.user_id != author_id:
       if self.cache.sismember(f'{key}:positive', str(payload.emoji)):
         self.cache.hincrby(key, author_id, -1)
       elif self.cache.sismember(f'{key}:negative', str(payload.emoji)):
@@ -56,6 +56,24 @@ class Karma(commands.Cog):
       self.cache.hsetnx(key, context.author.id, 0)
       user_karma = int(self.cache.hget(key, context.author.id))
       await context.send(f'{context.author.mention} has {user_karma} karma')
+  
+  @karma.command(name='resetall')
+  @commands.has_guild_permissions(administrator=True)
+  async def resetall(self, context: commands.Context):
+    self.cache.delete(karma_key(context.guild.id))
+    await context.send(f'{context.guild} has been reset for karma tracking')
+
+  @karma.command(name='set')
+  @commands.has_guild_permissions(administrator=True)
+  async def set(self, context: commands.Context, user: discord.Member, value: int):
+    self.cache.hset(karma_key(context.guild.id), user.id, value)
+    await context.send(f'{user.mention} has been set to {value} karma')
+
+  @karma.command(name='leaderboard')
+  async def leaderboard(self, context: commands.Context):
+    # TODO: List top 10 people and bottom 10 people
+    keys = self.cache.hkeys(karma_key(context.guild.id))
+    print(keys)
   
   @karma.command(name='link')
   @commands.has_guild_permissions(administrator=True)
