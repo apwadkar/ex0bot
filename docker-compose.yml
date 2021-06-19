@@ -5,6 +5,13 @@ services:
     restart: unless-stopped
     environment:
       - 'PYTHONUNBUFFERED=1'
+  server:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - 5000:9007
+    environment:
+      - 'PYTHONUNBUFFERED=1'
   redis-server:
     image: 'redis'
     volumes:
