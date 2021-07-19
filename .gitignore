@@ -1,5 +1,7 @@
 .env
 .DS_Store
 .vscode
+*.code-workspace
 bot-env/
+redis_data/
 __pycache__/
