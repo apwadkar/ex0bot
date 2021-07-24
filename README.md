@@ -20,6 +20,8 @@ This project uses [discord.py](https://github.com/Rappatz/discord.py) as a wrapp
 
 With the new 2.0 version of discord.py, I'm hoping to add some cool interactions like slash commands and message components to enhance existing features or make new ones.
 
+I also plan to create a Web Management Console to make interfacing with the bot a easier for moderators.
+
 ## Deploying
 
 You'll need a Discord bot application setup for a valid bot token. You'll also need a Redis server setup, there's
