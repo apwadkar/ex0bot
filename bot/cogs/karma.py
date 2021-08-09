@@ -80,7 +80,6 @@ class Karma(commands.Cog):
 
   @karma.command(name='leaderboard')
   async def leaderboard(self, context: commands.Context, tops: int = 10):
-    # TODO: List top 10 people and bottom 10 people
     keys = [int(key) for key in self.cache.hkeys(karma_key(context.guild.id))]
     vals = dict((key, int(self.cache.hget(karma_key(context.guild.id), key))) for key in keys)
     val_map = lambda id: f'{context.guild.get_member(id)}: {vals[id]}'

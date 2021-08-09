@@ -35,8 +35,7 @@ class Announce(commands.Cog):
     guild: discord.Guild = channel.guild
     user: discord.Member = guild.get_member(payload.user_id)
     if user != message.guild.me:
-      requested = bool(self.cache.hget(name=announce_key(message.id), key='requested'))
-      if requested:
+      if self.cache.hget(name=announce_key(message.id), key='requested'):
         if payload.emoji == '👍':
           announce_id = self.cache.hget(f'announcement:{guild.id}', key='channelid')
           if not announce_id:
@@ -148,33 +147,34 @@ class Announce(commands.Cog):
     # If accepted, send in *linked* announcement chat
     # Else, DM author saying announcement was rejected
     await context.message.delete()
-    await context.send('Announcement requests are broken right now')
+    # await context.send('Announcement requests are broken right now')
     # TODO: Fix this
-    # adminid = self.cache.hget(f'announcement:{context.guild.id}', key='adminchannelid')
-    # if not adminid:
-    #   await context.send('You have not linked an admin channel for suggestions.')
-    # else:
-    #   admin: discord.TextChannel = context.guild.get_channel(int(adminid))
-    #   author: discord.Member = context.author
-    #   approval_embed = discord.Embed(
-    #     title='Approve this announcement',
-    #     description=f'{author.name} is requesting admin approval for this announcement.'
-    #   ).set_author(name=author.name, icon_url=author.avatar_url)
-    #   approval_embed.add_field(name='Title', value=title, inline=False)
-    #   approval_embed.add_field(name='Description', value=description, inline=False)
-    #   # TODO: Don't require reactions
-    #   if reactions:
-    #     approval_embed.add_field(name='Reactions', value=reduce(lambda current_string, react: f'{current_string} {react}', reactions, ''), inline=False)
-    #   message: discord.Message = await admin.send(embed=approval_embed)
-    #   approval_embed.set_footer(text=f'{message.id}')
-    #   await message.edit(embed=approval_embed)
-    #   await message.add_reaction('👍')
-    #   await message.add_reaction('👎')
-    #   self.cache.hmset(announce_key(message.id), {
-    #     'requested': 1,
-    #     'requester': author.id,
-    #     'title': title,
-    #     'description': description
-    #   })
-    #   self.cache.lpush(f'{announce_key(message.id)}:reacts', *reactions)
-    #   await context.send(f'Your announcement has been sent to admins for approval.')
+    adminid = self.cache.hget(f'announcement:{context.guild.id}', key='adminchannelid')
+    if not adminid:
+      await context.send('You have not linked an admin channel for suggestions.')
+    else:
+      admin: discord.TextChannel = context.guild.get_channel(int(adminid))
+      author: discord.Member = context.message.author
+      approval_embed = discord.Embed(
+        title='Approve this announcement',
+        description=f'{author.name} is requesting admin approval for this announcement.'
+      ).set_author(name=author.name, icon_url=author.avatar.url)
+      approval_embed.add_field(name='Title', value=title, inline=False)
+      approval_embed.add_field(name='Description', value=description, inline=False)
+      # TODO: Don't require reactions
+      if reactions:
+        approval_embed.add_field(name='Reactions', value=' '.join(reactions), inline=False)
+      message: discord.Message = await admin.send(embed=approval_embed)
+      approval_embed.set_footer(text=f'{message.id}')
+      await message.edit(embed=approval_embed)
+      await message.add_reaction('👍')
+      await message.add_reaction('👎')
+      self.cache.hmset(announce_key(message.id), {
+        'requested': 1,
+        'requester': author.id,
+        'title': title,
+        'description': description
+      })
+      if reactions:
+        self.cache.lpush(f'{announce_key(message.id)}:reacts', *reactions)
+      await context.send(f'Your announcement has been sent to admins for approval.')
