@@ -2,12 +2,12 @@ import Ex0botStack from "./Ex0botStack";
 import { App } from "@serverless-stack/resources";
 
 export default function main(app: App): void {
-  // Set default runtime for all functions
   app.setDefaultFunctionProps({
-    runtime: "nodejs14.x"
+    runtime: "nodejs14.x",
+    environment: {
+      REDIS_URL: process.env.REDIS_URL || ""
+    }
   });
 
   new Ex0botStack(app, "ex0bot-api-stack");
-
-  // Add more stacks
 }
