@@ -15,6 +15,6 @@
   },
   "scripts": {
     "start": "node index.js",
-    "register": "node commands/register.js"
+    "register": "node register.js"
   }
 }
