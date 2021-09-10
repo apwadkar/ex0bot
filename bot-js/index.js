@@ -3,7 +3,7 @@ const { Client, Collection, Intents } = require('discord.js');
 const { TOKEN } = require('./config');
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILD_MEMBERS],
+  intents: [Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILDS],
 });
 
 client.commands = new Collection();
