@@ -1,4 +1,5 @@
 const { GUILD_ID } = require('../config');
+const { initRedis } = require('../redis');
 
 async function setCommandPermissions(client) {
   console.log('Setting command permissions...');
@@ -16,15 +17,20 @@ async function setCommandPermissions(client) {
     }
   }
   client.guilds.cache.get(GUILD_ID)?.commands.permissions.set({ fullPermissions: permissions });
-  console.log('Permissions set: ', JSON.stringify(permissions, null, 2));
+  // console.log('Permissions set: ', JSON.stringify(permissions, null, 2));
 }
 
 module.exports = {
   name: 'ready',
   once: true,
   async execute(client) {
-    await setCommandPermissions(client);
+    const redisClient = await initRedis();
+    if (redisClient) {
+      console.log('Connected to Redis instance');
+    }
+    client.redisClient = redisClient;
 
+    await setCommandPermissions(client);
     console.log(`Logged in as ${client.user.tag}`);
   },
 };

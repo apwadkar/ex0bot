@@ -6,4 +6,4 @@ services:
   redis-server:
     image: 'redis'
     volumes:
-      - $PWD/redis_data:/var/lib/redis
+      - $PWD/redis_data:/data

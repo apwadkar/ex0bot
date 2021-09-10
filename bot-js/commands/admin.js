@@ -3,8 +3,8 @@ const { OWNER_ID } = require('../config');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Replies with Pong!')
+    .setName('admin')
+    .setDescription('Administration commands')
     .setDefaultPermission(false),
   permissions: [
     {
@@ -13,7 +13,5 @@ module.exports = {
       permission: true,
     },
   ],
-  async execute(interaction) {
-    await interaction.reply('Pong!');
-  },
+  async execute(interaction) {},
 };
