@@ -1,6 +1,5 @@
 module.exports = {
   name: 'voiceStateUpdate',
-  once: false,
   async execute(oldState, newState) {
     const client = oldState.guild.client;
     const redisClient = client.redisClient;

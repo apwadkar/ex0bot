@@ -10,7 +10,6 @@ module.exports = {
     .addUserOption((option) =>
       option.setName('user').setDescription('User to check').setRequired(false)
     ),
-  permissions: [],
   async execute(interaction, redisClient) {
     const user = interaction.options.getUser('user') || interaction.user;
     await redisClient.sendCommand([

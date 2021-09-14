@@ -37,7 +37,20 @@
       "const { SlashCommandSubcommandBuilder } = require('@discordjs/builders');\n",
       "module.exports = {",
       "\tdata: new SlashCommandSubcommandBuilder().setName('$1').setDescription('$2'),",
-      "\tpermissions: [],",
+      "\tasync execute(interaction, redisClient) {",
+      "\t\t$0",
+      "\t},",
+      "};",
+      ""
+    ]
+  },
+  "discord.js subcommand group": {
+    "scope": "javascript",
+    "prefix": "subgcmd",
+    "body": [
+      "const { SlashCommandSubcommandGroupBuilder } = require('@discordjs/builders');\n",
+      "module.exports = {",
+      "\tdata: new SlashCommandSubcommandGroupBuilder().setName('$1').setDescription('$2'),",
       "\tasync execute(interaction, redisClient) {",
       "\t\t$0",
       "\t},",
