@@ -9,11 +9,14 @@ module.exports = {
     .addSubcommand(leaderboard.data)
     .addSubcommand(get.data),
   permissions: [],
-  async execute(interaction) {
-    if (interaction.options.getSubcommand() === 'leaderboard') {
-      await leaderboard.execute(interaction);
-    } else if (interaction.options.getSubcommand() === 'get') {
-      await get.execute(interaction);
+  async execute(interaction, redisClient) {
+    switch (interaction.options.getSubcommand()) {
+      case 'leaderboard':
+        await leaderboard.execute(interaction, redisClient);
+        break;
+      case 'get':
+        await get.execute(interaction, redisClient);
+        break;
     }
   },
 };

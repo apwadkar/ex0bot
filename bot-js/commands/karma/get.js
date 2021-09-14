@@ -11,9 +11,8 @@ module.exports = {
       option.setName('user').setDescription('User to check').setRequired(false)
     ),
   permissions: [],
-  async execute(interaction) {
+  async execute(interaction, redisClient) {
     const user = interaction.options.getUser('user') || interaction.user;
-    const redisClient = interaction.client.redisClient;
     await redisClient.sendCommand([
       'HSETNX',
       karmaKey(interaction.guildId),

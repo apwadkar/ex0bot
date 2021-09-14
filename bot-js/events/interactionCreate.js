@@ -8,7 +8,7 @@ module.exports = {
 
     console.log(`Command ID: ${interaction.commandId}`);
     try {
-      await command.execute(interaction);
+      await command.execute(interaction, interaction.client.redisClient);
     } catch (error) {
       console.error(error);
       await interaction.reply({
