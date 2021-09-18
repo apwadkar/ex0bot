@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { Permissions } = require('discord.js');
-const redis = require('../redis');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -47,16 +46,26 @@ module.exports = {
           },
         ];
         if (interaction.options.getRole('restriction')) {
-          permissionOverwrites.push({
-            id: interaction.options.getRole('restriction').id,
-            type: 'role',
-            allow: Permissions.FLAGS.VIEW_CHANNEL,
-          });
-          permissionOverwrites.push({
-            id: interaction.guild.roles.everyone.id,
-            deny: Permissions.FLAGS.VIEW_CHANNEL,
-            type: 'role',
-          });
+          const role = interaction.options.getRole('restriction');
+          if (interaction.member.roles.cache.has(role)) {
+            console.log('has role');
+            permissionOverwrites.push({
+              id: interaction.options.getRole('restriction').id,
+              type: 'role',
+              allow: Permissions.FLAGS.VIEW_CHANNEL,
+            });
+            permissionOverwrites.push({
+              id: interaction.guild.roles.everyone.id,
+              deny: Permissions.FLAGS.VIEW_CHANNEL,
+              type: 'role',
+            });
+          } else {
+            await interaction.reply({
+              content: `You do not have ${role}!`,
+              ephemeral: true,
+            });
+            return;
+          }
         }
 
         const channel = await interaction.guild.channels.create(

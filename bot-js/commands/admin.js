@@ -1,12 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { OWNER_ID } = require('../config');
 const karma = require('./admin/karma');
+const vc = require('./admin/vc');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('admin')
     .setDescription('Administration commands')
     .addSubcommandGroup(karma.data)
+    .addSubcommandGroup(vc.data)
     .setDefaultPermission(false),
   permissions: [
     {
@@ -22,6 +24,7 @@ module.exports = {
         break;
 
       case 'vc':
+        await vc.execute(interaction, redisClient);
         break;
     }
   },
