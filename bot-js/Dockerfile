@@ -7,4 +7,7 @@ RUN yarn install
 
 COPY ./ ./
 
+# Register guild commands
+RUN yarn register
+
 CMD [ "yarn", "start" ]
