@@ -1,6 +1,8 @@
 .env
+.vscode/
+.yarn/
 .DS_Store
 *.code-workspace
 bot-env/
 redis_data/
-__pycache__/
+node_modules/

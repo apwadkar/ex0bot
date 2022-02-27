@@ -18,16 +18,4 @@ In `bot`:
  - `REDIS_URL` - URL for your Redis server (needs to be in valid Redis URL format)
    - If you're using my [docker-compose.yml](https://github.com/apwadkar/ex0bot/blob/master/docker-compose.yml), the URL is `redis://redis-server:6379`
 
-In `serverless`:
-
- - `REDIS_URL` - URL for your Redis server (same as above)
-
 Development setup of the bot is handled by Docker, so all you need to do is run `docker compose up --build`
-
-### Serverless Setup
-
-For the API, I'm using SST (an extension of AWS Cloud Development Kit) to setup a serverless stack. To deploy,
-you will need your own AWS account and AWS CLI setup. Once these are setup, you can simply run `yarn deploy` to
-deploy the stack to the dev stage.
-
-I'm trying to be as frugal as I can and using free tier everything so no one has to pay for any hosting.

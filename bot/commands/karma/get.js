@@ -18,7 +18,7 @@ module.exports = {
       user.id,
       '0',
     ]);
-    const userKarma = await redisClient.hGet(karmaKey(GUILD_ID), user.id);
+    const userKarma = await redisClient.hGet(karmaKey(interaction.guildId), user.id);
     await interaction.reply(`${user} has ${userKarma} karma`);
   },
 };

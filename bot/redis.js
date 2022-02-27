@@ -3,11 +3,7 @@ const { REDIS_URL } = require('./config');
 
 module.exports = {
   async initRedis() {
-    const client = createClient({
-      socket: {
-        url: REDIS_URL,
-      },
-    });
+    const client = createClient({ url: REDIS_URL });
 
     client.on('error', (err) => console.log('Redis Client Error', err));
 

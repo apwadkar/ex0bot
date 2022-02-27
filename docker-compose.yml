@@ -1,8 +1,10 @@
 version: '3'
 services:
   ex0bot:
-    build: ./bot-js
+    build: ./bot
     restart: unless-stopped
+    # environment:
+    #  - REDIS_URL="redis://redis-server:6379"
   redis-server:
     image: 'redis'
     volumes:
