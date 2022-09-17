@@ -1,3 +1,4 @@
+import asyncio
 import redis
 import discord
 from datetime import datetime
@@ -12,7 +13,6 @@ from cogs.voice import Voice
 from cogs.poll import Poll
 from cogs.bestof import Bestof
 from utils.logs import Logger
-from typing import List
 
 # Settings
 import settings
@@ -25,11 +25,12 @@ logger = Logger(cache)
 # Configure member caching intent
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix='$', intents=intents)
 
 async def patch_show():
-  aztz = timezone('America/Phoenix')
+  aztz = timezone('America/Chicago')
   today = datetime.now(aztz)
   date_string = today.strftime('%m-%d-%Y')
   file_name = f'patch-notes/{date_string}.txt'
@@ -74,16 +75,6 @@ async def on_message(message: discord.Message):
   if message.author != bot.user and not cache.sismember('blocked', message.author.id):
     await bot.process_commands(message)
 
-bot.add_cog(logger)
-bot.add_cog(Kick(cache, logger))
-bot.add_cog(Role(bot, cache))
-bot.add_cog(Announce(bot, cache, logger))
-bot.add_cog(Counter(cache))
-bot.add_cog(Voice(cache))
-bot.add_cog(Poll(cache))
-bot.add_cog(Bestof(bot, cache, logger))
-bot.add_cog(Karma(bot, cache, logger))
-
 @bot.command(name='block')
 @commands.has_guild_permissions(administrator=True)
 async def block(context: commands.Context, member: discord.Member):
@@ -100,4 +91,19 @@ async def unblock(context: commands.Context, member: discord.Member):
   await context.send(f'Unblocked {member.mention} from using bot commands')
   await logger.log(commands.Bot.__name__, f'{context.member.mention}: Unblocked {member.mention} from using bot commands', context.guild)
 
-bot.run(settings.DISCORD_TOKEN)
+async def setup(bot, logger, cache):
+  await bot.add_cog(logger)
+  await bot.add_cog(Kick(cache, logger))
+  await bot.add_cog(Role(bot, cache))
+  await bot.add_cog(Announce(bot, cache, logger))
+  await bot.add_cog(Counter(cache))
+  await bot.add_cog(Voice(cache))
+  await bot.add_cog(Poll(cache))
+  await bot.add_cog(Bestof(bot, cache, logger))
+  await bot.add_cog(Karma(bot, cache, logger))
+
+async def main():
+  await setup(bot, logger, cache)
+  await bot.start(settings.DISCORD_TOKEN)
+
+asyncio.run(main())

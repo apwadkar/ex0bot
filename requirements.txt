@@ -2,5 +2,3 @@ discord.py
 redis
 pytz
 python-dotenv
-flask
-gunicorn
