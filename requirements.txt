@@ -1,4 +1,4 @@
-discord.py
-redis
-pytz
-python-dotenv
+discord.py==2.1.0
+redis==4.3.4
+pytz==2022.6
+python-dotenv==0.21.0

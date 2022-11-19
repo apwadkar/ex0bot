@@ -7,5 +7,7 @@ services:
       - 'PYTHONUNBUFFERED=1'
   redis-server:
     image: 'redis'
+    environment:
+      - "REDIS_ARGS=--save 300 1"
     volumes:
-      - $PWD/redis_data:/var/lib/redis
+      - $PWD/redis_data:/data
