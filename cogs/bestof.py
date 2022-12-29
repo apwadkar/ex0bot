@@ -44,20 +44,22 @@ class Bestof(commands.Cog):
     key = bestof_key(guild.id)
     self.cache.hincrby(key, 'count', 1)
     count = int(self.cache.hget(key, 'count'))
+
     embed = discord.Embed(
       title = f'Best of {guild.name} #{count}',
       description = bomsg.content,
       url = bomsg.jump_url,
       timestamp = bomsg.created_at,
       color = discord.Color.random()
-    ).set_author(name=author.name, icon_url=author.avatar_url)
+    ).set_author(name=author.name, icon_url=author.avatar.url)
+
     # Add any attachments as links in fields
-    image_set = False
+    media_set = False
     for i, attach in enumerate(bomsg.attachments):
-      if not image_set and attach.content_type.startswith('image'):
-        embed = embed.set_image(url=attach.url)
-        image_set = True
-      embed = embed.add_field(name=f'Attachment {i}', value=attach.url)
+      if not media_set and attach.content_type.startswith('image'):
+        embed.set_image(url=attach.url)
+        media_set = True
+      embed.add_field(name=f'Attachment {i}', value=attach.url)
 
     channel_id = int(self.cache.hget(key, 'channel'))
     if bomsg.channel.id != channel_id:

@@ -90,8 +90,8 @@ class Karma(commands.Cog):
       color=discord.Color.random(),
       timestamp=datetime.datetime.now()
     ) \
-      .set_author(name=context.author.name, icon_url=context.author.avatar_url) \
-      .set_thumbnail(url=context.guild.icon_url) \
+      .set_author(name=context.author.name, icon_url=context.author.avatar.url) \
+      .set_thumbnail(url=context.guild.icon.url) \
       .add_field(name='Top 10', value='\n'.join(sorted_vals)) \
       .add_field(name='Bottom 10', value='\n'.join(rev_sorted_vals))
     await context.send(embed=embed)

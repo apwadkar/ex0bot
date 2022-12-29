@@ -5,9 +5,10 @@ services:
     restart: unless-stopped
     environment:
       - 'PYTHONUNBUFFERED=1'
+      - 'REDIS_URL=redis://redis-server:6379'
   redis-server:
     image: 'redis'
     environment:
-      - "REDIS_ARGS=--save 300 1"
+      - 'REDIS_ARGS=--save 300 1'
     volumes:
       - $PWD/redis_data:/data
