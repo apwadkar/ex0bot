@@ -91,6 +91,13 @@ async def unblock(context: commands.Context, member: discord.Member):
   await context.send(f'Unblocked {member.mention} from using bot commands')
   await logger.log(commands.Bot.__name__, f'{context.member.mention}: Unblocked {member.mention} from using bot commands', context.guild)
 
+@bot.command()
+@commands.is_owner()
+async def sync(context: commands.Context):
+  """Sync commands"""
+  synced = await context.bot.tree.sync()
+  await context.send(f'Synced {len(synced)} commands globally')
+
 async def setup(bot, logger, cache):
   await bot.add_cog(logger)
   await bot.add_cog(Kick(cache, logger))

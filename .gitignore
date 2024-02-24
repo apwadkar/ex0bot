@@ -2,6 +2,6 @@
 .DS_Store
 .vscode
 *.code-workspace
-bot-env/
+.venv/
 redis_data/
 __pycache__/

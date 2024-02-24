@@ -1,5 +1,6 @@
 import redis
 import discord
+from discord import app_commands
 from discord.ext import commands
 from utils.logs import Logger
 
@@ -34,8 +35,11 @@ class Kick(commands.Cog):
     self.cache.set(f'user:{member.guild.id}:{memberId}', member.nick or '')
     await self.logger.log(type(self), f'{member.mention} has left and roles have been saved', member.guild)
 
-  @commands.command(name='kick')
+  @commands.hybrid_command(name='kick')
   @commands.has_guild_permissions(kick_members=True)
+  @app_commands.default_permissions(kick_members=True)
+  @app_commands.guild_only()
+  @app_commands.describe(user='Member to kick', reason='Reason for audit log')
   async def kick(self, context: commands.Context, user: discord.Member, reason: str = 'Kicked by admin'):
     await context.message.delete()
     await user.kick(reason=reason)
